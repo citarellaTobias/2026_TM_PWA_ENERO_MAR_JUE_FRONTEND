@@ -5,22 +5,28 @@ export const AuthContext = createContext()
 
 export const AUTH_TOKEN_KEY = 'auth_token'
 
+function decodeAuthToken (auth_token){
+    return jwtDecode(auth_token)
+}
+
 function AuthContextProvider ({children}){
-    const [isLogged, setIsLogged] = useState(false)
-    const [session, setSession] = useState(null)
+    const auth_token = localStorage.getItem(AUTH_TOKEN_KEY)
+    const [isLogged, setIsLogged] = useState(Boolean(auth_token))
+    const [session, setSession] = useState(auth_token ? decodeAuthToken(auth_token) : null)
 
     useEffect(
         () => {
             /* 
             Normalmente los backends suelen tener un endpoint 
             GET /api/auth/validate-token (Authorization: Bearer auth_token) Te responde si el token es valido o no
+            Este useEffect seria valido si en el futuro tenemos el GET /api/auth/validate-token
             */
-            const auth_token = localStorage.getItem(AUTH_TOKEN_KEY)
+            /* const auth_token = localStorage.getItem(AUTH_TOKEN_KEY)
             if(auth_token){
                 setIsLogged(true)
                 const session_decoded = jwtDecode(auth_token)
                 setSession(session_decoded)
-            }
+            } */
         }, 
         []
     )

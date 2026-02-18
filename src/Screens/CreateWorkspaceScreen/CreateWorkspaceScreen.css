@@ -1,0 +1,132 @@
+.create-workspace-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #fceceb; /* A very subtle background */
+    font-family: 'Lato', sans-serif; /* Assuming a common font or system default */
+}
+
+.create-workspace-card {
+    background-color: white;
+    padding: 3rem;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+    width: 100%;
+    max-width: 600px;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.create-workspace-header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1d1c1d;
+    margin-bottom: 0.5rem;
+    text-align: center;
+}
+
+.create-workspace-header p {
+    color: #616061;
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.workspace-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-label {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: #1d1c1d;
+}
+
+.form-input,
+.form-textarea {
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+    transition: border-color 0.2s;
+    outline: none;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.form-input:focus,
+.form-textarea:focus {
+    border-color: #1264a3;
+    box-shadow: 0 0 0 4px rgba(29, 155, 209, 0.1);
+}
+
+.form-textarea {
+    resize: vertical;
+    min-height: 120px;
+}
+
+.char-counter {
+    text-align: right;
+    font-size: 0.8rem;
+    color: #616061;
+    margin-top: 0.25rem;
+}
+
+.char-counter.limit-near {
+    color: #e8912d;
+}
+
+.char-counter.limit-reached {
+    color: #e01e5a;
+}
+
+.error-message {
+    color: #e01e5a;
+    font-size: 0.85rem;
+    margin-top: 0.25rem;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.submit-btn {
+    background-color: #007a5a; /* Slack Green */
+    color: white;
+    border: none;
+    padding: 14px;
+    font-size: 1rem;
+    font-weight: 700;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    margin-top: 1rem;
+}
+
+.submit-btn:hover {
+    background-color: #148567;
+}
+
+.back-link {
+    text-align: center;
+    margin-top: 1rem;
+}
+
+.back-link a {
+    color: #1264a3;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.back-link a:hover {
+    text-decoration: underline;
+}

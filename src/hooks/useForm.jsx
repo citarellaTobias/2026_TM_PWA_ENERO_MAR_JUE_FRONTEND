@@ -8,7 +8,7 @@ const useForm = (
 ) => {
     const [form_state, setFormState] = useState(initial_form_fields)
 
-    // Nos permite trackear el valor de un campo
+    //Nos permite trackear el valor de un campo
     const onChangeFieldValue = (event) => {
         const {name, value} = event.target
 
