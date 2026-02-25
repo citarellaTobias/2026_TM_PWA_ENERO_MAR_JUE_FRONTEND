@@ -78,9 +78,9 @@ export async function createChannel(workspace_id, channel_data) {
     return response
 }
 
-export async function getChannelMessages(channel_id) {
+export async function getChannelMessages(workspace_id, channel_id) {
     const response_http = await fetch(
-        URL_API + `/api/channels/${channel_id}/messages`,
+        URL_API + `/api/workspace/${workspace_id}/channels/${channel_id}/messages`,
         {
             method: 'GET',
             headers: {
@@ -96,9 +96,9 @@ export async function getChannelMessages(channel_id) {
     return response
 }
 
-export async function createMessage(channel_id, messageData) {
+export async function createMessage(workspace_id, channel_id, messageData) {
     const response_http = await fetch(
-        URL_API + `/api/channels/${channel_id}/messages`,
+        URL_API + `/api/workspace/${workspace_id}/channels/${channel_id}/messages`,
         {
             method: 'POST',
             headers: {

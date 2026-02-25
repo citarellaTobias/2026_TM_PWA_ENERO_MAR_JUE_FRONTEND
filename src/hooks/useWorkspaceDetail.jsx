@@ -38,6 +38,7 @@ const useWorkspaceDetail = () => {
 
     return {
         workspace,
+        workspaceId: workspace_id,
         member,
         channels,
         loading,

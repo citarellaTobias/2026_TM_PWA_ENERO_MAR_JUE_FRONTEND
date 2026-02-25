@@ -11,6 +11,7 @@ const WorkspaceScreen = () => {
     const { refreshWorkspaces } = useContext(WorkspaceContext)
     const {
         workspace,
+        workspaceId,
         member,
         channels,
         loading: workspaceLoading,
@@ -35,7 +36,7 @@ const WorkspaceScreen = () => {
         e.preventDefault()
         setInviteStatus(null)
         try {
-            await inviteUser(workspace._id || workspace.workspace_id, inviteEmail)
+            await inviteUser(workspaceId, inviteEmail)
             setInviteStatus({ type: 'success', message: 'Invitación enviada!' })
             setInviteEmail('')
             setTimeout(() => {
@@ -51,7 +52,7 @@ const WorkspaceScreen = () => {
         setShowMembersModal(true)
         setMembersLoading(true)
         try {
-            const response = await getWorkspaceMembers(workspace._id || workspace.workspace_id)
+            const response = await getWorkspaceMembers(workspaceId)
             setMembers(response.data?.members || response.data || [])
         } catch (err) {
             console.error("Error al obtener miembros", err)
@@ -63,7 +64,7 @@ const WorkspaceScreen = () => {
     const handleDeleteWorkspace = async () => {
         if (window.confirm('¿Estás seguro de que quieres eliminar este workspace? Esta acción no se puede deshacer.')) {
             try {
-                await deleteWorkspace(workspace._id || workspace.workspace_id)
+                await deleteWorkspace(workspaceId)
                 refreshWorkspaces()
                 navigate('/home')
             } catch (err) {
@@ -84,20 +85,14 @@ const WorkspaceScreen = () => {
     if (workspaceError) return <span>Error al cargar workspace: {workspaceError.message}</span>
     if (!workspace) return <span>Workspace no encontrado</span>
 
-    console.log('🏢 Workspace object:', workspace)
-    console.log('🏢 Workspace keys:', Object.keys(workspace))
-    
     const workspaceName = workspace.title || workspace.workspace_title || workspace.name || 'Workspace'
-    const workspaceId = workspace._id || workspace.id || workspace.workspace_id
-    
-    console.log('🏢 Using workspaceId:', workspaceId)
 
     return (
         <div className="ws-layout">
 
             {/* Mobile header */}
             <div className="ws-mobile-header">
-                <button className="ws-mobile-toggle" onClick={() => setShowMobileMenu(true)}><i class="bi bi-list"></i></button>
+                <button className="ws-mobile-toggle" onClick={() => setShowMobileMenu(true)}><i className="bi bi-list"></i></button>
                 <div>{workspaceName}</div>
             </div>
 
