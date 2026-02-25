@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react'
+import React, { useState, useEffect, useContext, useRef } from 'react'
 import { Link, useNavigate } from 'react-router'
 import useWorkspaceDetail from '../../hooks/useWorkspaceDetail'
 import useChannel from '../../hooks/useChannel'
@@ -84,158 +84,185 @@ const WorkspaceScreen = () => {
     if (workspaceError) return <span>Error al cargar workspace: {workspaceError.message}</span>
     if (!workspace) return <span>Workspace no encontrado</span>
 
+    console.log('🏢 Workspace object:', workspace)
+    console.log('🏢 Workspace keys:', Object.keys(workspace))
+    
+    const workspaceName = workspace.title || workspace.workspace_title || workspace.name || 'Workspace'
+    const workspaceId = workspace._id || workspace.id || workspace.workspace_id
+    
+    console.log('🏢 Using workspaceId:', workspaceId)
+
     return (
-        <div className="workspace-container">
-            <div className="mobile-header">
-                <button className="mobile-menu-toggle" onClick={() => setShowMobileMenu(true)}>☰</button>
-                <div>{workspace.title || workspace.workspace_title || workspace.name}</div>
+        <div className="ws-layout">
+
+            {/* Mobile header */}
+            <div className="ws-mobile-header">
+                <button className="ws-mobile-toggle" onClick={() => setShowMobileMenu(true)}><i className="bi bi-list"></i></button>
+                <div>{workspaceName}</div>
             </div>
 
-            <div className={`workspace-sidebar ${showMobileMenu ? 'show' : ''}`}>
-                <div className="workspace-header">
-                    <div>
-                        <Link to="/home" className="back-button">← Volver al Home</Link>
-                        <button className="mobile-menu-toggle" onClick={() => setShowMobileMenu(false)}>×</button>
-                    </div>
-                    <div>
-                        {workspace.image ? (
-                            <img src={workspace.image} alt={workspace.title} />
-                        ) : (
-                            <div className="workspace-avatar">
-                                {(workspace.title || workspace.workspace_title || workspace.name || 'W').charAt(0).toUpperCase()}
+            {/* Sidebar */}
+            <div className={`ws-sidebar ${showMobileMenu ? 'show' : ''}`}>
+                <div className="ws-sidebar-header">
+                    <div className="ws-sidebar-header-top">
+                        <div className="ws-workspace-name-row">
+                            <div className="ws-workspace-logo">
+                                {workspaceName.charAt(0).toUpperCase()}
                             </div>
-                        )}
-                        <h2>{workspace.title || workspace.workspace_title || workspace.name}</h2>
+                            <h2>{workspaceName}</h2>
+                        </div>
+                        <div className="ws-sidebar-actions">
+                            <button
+                                className="ws-mobile-toggle ws-sidebar-icon-btn"
+                                onClick={() => setShowMobileMenu(false)}
+                                style={{ display: showMobileMenu ? 'flex' : 'none' }}
+                            >×</button>
+                        </div>
                     </div>
-                    <div className="workspace-header-buttons">
-                        <button className="btn-invite" onClick={() => setShowInviteModal(true)}>
+
+                    <div className="ws-status-row">
+                        <div className="ws-status-dot"></div>
+                        <span className="ws-status-label">Activo</span>
+                    </div>
+
+                    <Link to="/home" className="ws-back-link">← Volver al Home</Link>
+
+                    <div className="ws-header-buttons">
+                        <button className="ws-btn-invite" onClick={() => setShowInviteModal(true)}>
                             + Invitar
                         </button>
-                        <button className="btn-members" onClick={handleShowMembers}>
+                        <button className="ws-btn-members" onClick={handleShowMembers}>
                             Miembros
                         </button>
                     </div>
                 </div>
-                <div className="channels-list">
-                    <h3>Canal</h3>
-                    <ul>
+
+                <div className="ws-sidebar-body">
+                    <div className="ws-section">
+                        <div className="ws-section-header">
+                            <span className="ws-section-title">Canales</span>
+                        </div>
                         {channels && channels.map(channel => {
                             const id = channel.id || channel._id || channel.channel_id
                             return (
-                                <li
+                                <div
                                     key={id}
+                                    className={`ws-ch-item ${selectedChannelId === id ? 'active' : ''}`}
                                     onClick={() => setSelectedChannelId(id)}
-                                    className={selectedChannelId === id ? 'active' : ''}
                                 >
-                                    # {channel.name || channel.title}
-                                </li>
+                                    <span className="ws-ch-prefix">#</span>
+                                    <span className="ws-ch-name">{channel.name || channel.title}</span>
+                                </div>
                             )
                         })}
-                    </ul>
+                    </div>
                 </div>
-                <div className="create-channel">
+
+                <div className="ws-create-ch">
                     <input
                         type="text"
-                        placeholder="Crear canal"
+                        placeholder="Nuevo canal..."
                         value={newChannelName}
                         onChange={(e) => setNewChannelName(e.target.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' && newChannelName.trim()) {
+                                createChannel(newChannelName)
+                                setNewChannelName('')
+                            }
+                        }}
                     />
                     <button onClick={() => {
                         if (newChannelName.trim()) {
                             createChannel(newChannelName)
                             setNewChannelName('')
                         }
-                    }}>
-                        +
-                    </button>
+                    }}>+</button>
                 </div>
             </div>
-            <div className="workspace-main">
+
+            {/* Main panel */}
+            <div className="ws-main">
                 {selectedChannelId ? (
-                    <ChannelChat channelId={selectedChannelId} channels={channels || []} />
+                    <ChannelChat 
+                        workspaceId={workspaceId} 
+                        channelId={selectedChannelId} 
+                        channels={channels || []} 
+                    />
                 ) : (
-                    <div className="no-channel-selected">Selecciona un canal para comenzar a chatear</div>
+                    <div className="ws-no-channel">Selecciona un canal para comenzar a chatear</div>
                 )}
             </div>
 
+            {/* Invite Modal */}
             {showInviteModal && (
-                <div className="modal-overlay">
-                    <div className="modal-content invite-modal">
-                        <div className="modal-header">
-                            <h3>Invitar a {workspace.title || workspace.workspace_title}</h3>
+                <div className="ws-modal-overlay" onClick={(e) => e.target === e.currentTarget && setShowInviteModal(false)}>
+                    <div className="ws-modal">
+                        <div className="ws-modal-header">
+                            <h3>Invitar a {workspaceName}</h3>
+                            <button className="ws-modal-close" onClick={() => setShowInviteModal(false)}>×</button>
                         </div>
-                        <form onSubmit={handleInvite}>
-                            <div className="form-group">
-                                <label className="form-label">Email</label>
+                        <div className="ws-modal-body">
+                            {inviteStatus && (
+                                <div className={`ws-alert ${inviteStatus.type === 'error' ? 'error' : 'success'}`}>
+                                    {inviteStatus.message}
+                                </div>
+                            )}
+                            <div className="ws-form-group">
+                                <label className="ws-form-label">Email</label>
                                 <input
                                     type="email"
                                     value={inviteEmail}
                                     onChange={(e) => setInviteEmail(e.target.value)}
-                                    placeholder="name@example.com"
-                                    required
-                                    className="form-input"
+                                    placeholder="nombre@ejemplo.com"
+                                    className="ws-form-input"
                                 />
                             </div>
-                            {inviteStatus && (
-                                <div className={`alert ${inviteStatus.type === 'error' ? 'alert-error' : 'alert-success'}`}>
-                                    {inviteStatus.message}
-                                </div>
-                            )}
-                            <div className="modal-buttons">
-                                <button
-                                    type="button"
-                                    onClick={() => setShowInviteModal(false)}
-                                    className="btn-secondary"
-                                >
-                                    Cancelar
-                                </button>
-                                <button
-                                    type="submit"
-                                    className="btn-primary"
-                                >
-                                    Enviar invitación
-                                </button>
-                            </div>
-                        </form>
+                        </div>
+                        <div className="ws-modal-buttons">
+                            <button className="ws-btn-secondary" onClick={() => setShowInviteModal(false)}>
+                                Cancelar
+                            </button>
+                            <button className="ws-btn-primary" onClick={handleInvite}>
+                                Enviar invitación
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
 
-
+            {/* Members Modal */}
             {showMembersModal && (
-                <div className="modal-overlay">
-                    <div className="modal-content members-modal">
-                        <div className="modal-header">
-                            <h3>Miembros de {workspace.title || workspace.workspace_title}</h3>
-                            <button className="modal-close-btn" onClick={() => setShowMembersModal(false)}>×</button>
+                <div className="ws-modal-overlay" onClick={(e) => e.target === e.currentTarget && setShowMembersModal(false)}>
+                    <div className="ws-modal wide">
+                        <div className="ws-modal-header">
+                            <h3>Miembros de {workspaceName}</h3>
+                            <button className="ws-modal-close" onClick={() => setShowMembersModal(false)}>×</button>
                         </div>
-
-                        <div className="modal-body">
+                        <div className="ws-modal-body">
                             {membersLoading ? (
                                 <div>Cargando miembros...</div>
                             ) : (
-                                <ul className="members-list">
+                                <ul className="ws-members-list">
                                     {members.map(m => (
                                         <li key={m._id}>
-                                            <div className="message-avatar" style={{ backgroundColor: stringToColor(m.fk_id_user?.username || 'User') }}>
+                                            <div className="ws-msg-avatar" style={{ backgroundColor: stringToColor(m.fk_id_user?.username || 'User') }}>
                                                 {(m.fk_id_user?.username || 'U').charAt(0).toUpperCase()}
                                             </div>
-                                            <div className="member-info">
-                                                <div className="member-name">{m.fk_id_user?.username || 'Unknown User'}</div>
-                                                <div className="member-meta">{m.fk_id_user?.email} • {m.role}</div>
+                                            <div className="ws-member-info">
+                                                <div className="ws-member-name">{m.fk_id_user?.username || 'Unknown User'}</div>
+                                                <div className="ws-member-meta">{m.fk_id_user?.email} · {m.role}</div>
                                             </div>
                                         </li>
                                     ))}
                                 </ul>
                             )}
                         </div>
-
                         {member && member.role === 'Owner' && (
-                            <div className="modal-footer">
-                                <button className="btn-danger" onClick={handleDeleteWorkspace}>
+                            <div className="ws-modal-footer">
+                                <button className="ws-btn-danger" onClick={handleDeleteWorkspace}>
                                     Eliminar Workspace
                                 </button>
-                                <div className="danger-warning">
+                                <div className="ws-danger-warning">
                                     Advertencia: Esta acción no se puede deshacer.
                                 </div>
                             </div>
@@ -247,72 +274,160 @@ const WorkspaceScreen = () => {
     )
 }
 
-const ChannelChat = ({ channelId, channels }) => {
-    const { messages, loading, sendMessage, hasFetchedOnce } = useChannel(channelId)
+const ChannelChat = ({ workspaceId, channelId, channels }) => {
+    const { messages, loading, sendMessage, hasFetchedOnce, pendingMessageIds } = useChannel(workspaceId, channelId)
     const [newMessage, setNewMessage] = useState('')
+    const messagesEndRef = useRef(null)
+    const textareaRef = useRef(null)
+
+    console.log('🎨 ChannelChat render - workspaceId:', workspaceId, 'channelId:', channelId, 'messages:', messages.length, 'loading:', loading)
 
     const channel = channels.find(c => (c.id || c._id || c.channel_id) === channelId)
+    const channelName = channel ? (channel.name || channel.title) : 'canal'
 
-    const handleSend = (e) => {
-        e.preventDefault()
+    useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    }, [messages])
+
+    const handleSend = () => {
         if (newMessage.trim()) {
-            sendMessage(newMessage)
+            sendMessage(newMessage.trim())
             setNewMessage('')
+            if (textareaRef.current) {
+                textareaRef.current.style.height = 'auto'
+            }
         }
     }
 
-    return (
-        <div className="channel-chat">
-            <div className="channel-header">
-                # {channel ? channel.name : 'channel'}
-            </div>
-            <div className="messages-list">
-                {messages.map(msg => {
-                    const authorName = msg.fk_workspace_member_id?.fk_id_user?.username || msg.author_name || msg.author?.name || msg.author || 'User'
-                    const initial = (authorName || 'U').charAt(0).toUpperCase()
-                    const time = new Date(msg.created_at || msg.createdAt || msg.time || msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault()
+            handleSend()
+        }
+    }
 
-                    return (
-                        <div key={msg._id || msg.id || msg.message_id} className="message-item">
-                            <div className="message-avatar" style={{ backgroundColor: stringToColor(authorName) }}>
-                                {initial}
-                            </div>
-                            <div className="message-body">
-                                <div className="message-header">
-                                    <span className="message-author">{authorName}</span>
-                                    <span className="message-time">{time}</span>
-                                </div>
-                                <div className="message-content">{msg.mensaje || msg.content || msg.text || msg.body}</div>
-                            </div>
-                        </div>
-                    )
-                })}
-                {messages.length === 0 && hasFetchedOnce && !loading && (
-                    <div style={{ padding: '20px', color: '#616061' }}>No hay mensajes aun. Di hola!</div>
-                )}
+    const handleTextareaChange = (e) => {
+        setNewMessage(e.target.value)
+        e.target.style.height = 'auto'
+        e.target.style.height = Math.min(e.target.scrollHeight, 200) + 'px'
+    }
+
+    // Group messages by date
+    const groupedMessages = messages.reduce((groups, msg) => {
+        const date = new Date(msg.created_at || msg.createdAt || msg.time || msg.timestamp)
+        const dateKey = date.toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' })
+        if (!groups[dateKey]) groups[dateKey] = []
+        groups[dateKey].push(msg)
+        return groups
+    }, {})
+
+    console.log('📊 Grouped messages:', groupedMessages)
+
+    return (
+        <div className="ws-channel-chat">
+            {/* Topbar */}
+            <div className="ws-topbar">
+                <div className="ws-topbar-left">
+                    <div className="ws-topbar-name">
+                        <span className="ws-topbar-hash">#</span>
+                        {channelName}
+                    </div>
+                </div>
+                <div className="ws-topbar-right">
+                    <button className="ws-topbar-icon-btn" title="Buscar"><i class="bi bi-search"></i></button>
+                    <button className="ws-topbar-icon-btn" title="Miembros"><i class="bi bi-people"></i></button>
+                </div>
             </div>
-            <div className="input-area-container">
-                <form className="message-input" onSubmit={handleSend}>
-                    <input
-                        type="text"
-                        value={newMessage}
-                        onChange={(e) => setNewMessage(e.target.value)}
-                        placeholder={`Escribe un mensaje en #${channel ? channel.name : 'channel'}`}
-                    />
-                    <button type="submit">Enviar</button>
-                </form>
+
+            {/* Messages */}
+            <div className="ws-channel-body">
+                <div className="ws-messages">
+                    {messages.length === 0 && hasFetchedOnce && !loading && (
+                        <div className="ws-welcome">
+                            <div className="ws-welcome-icon">#</div>
+                            <h2>Bienvenido a #{channelName}</h2>
+                            <p>Este es el comienzo del canal <strong>#{channelName}</strong>. Di hola 👋</p>
+                        </div>
+                    )}
+
+                    {Object.entries(groupedMessages).map(([dateLabel, msgs]) => (
+                        <React.Fragment key={dateLabel}>
+                            <div className="ws-date-sep">
+                                <span>{dateLabel}</span>
+                            </div>
+                            {msgs.map(msg => {
+                                const authorName = msg.fk_workspace_member_id?.fk_id_user?.username || msg.author_name || msg.author?.name || msg.author || 'User'
+                                const initial = (authorName || 'U').charAt(0).toUpperCase()
+                                const time = new Date(msg.created_at || msg.createdAt || msg.time || msg.timestamp)
+                                    .toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                                const isPending = pendingMessageIds?.has(msg._id)
+
+                                return (
+                                    <div key={msg._id || msg.id || msg.message_id} className={`ws-msg-row ${isPending ? 'pending' : ''}`}>
+                                        <div className="ws-msg-avatar" style={{ backgroundColor: stringToColor(authorName) }}>
+                                            {initial}
+                                        </div>
+                                        <div className="ws-msg-body">
+                                            <div className="ws-msg-header">
+                                                <span className="ws-msg-author">{authorName}
+                                                    {isPending && <span className="ws-msg-pending-indicator" title="Enviando...">⏱</span>}
+                                                </span>
+                                                <span className="ws-msg-time">{time}</span>
+                                            </div>
+                                            <div className="ws-msg-content">
+                                                {msg.mensaje || msg.content || msg.text || msg.body}
+                                            </div>
+                                        </div>
+                                    </div>
+                                )
+                            })}
+                        </React.Fragment>
+                    ))}
+                    <div ref={messagesEndRef} />
+                </div>
+
+                {/* Composer */}
+                <div className="ws-composer-wrapper">
+                    <div className="ws-composer-box">
+                        <div className="ws-composer-input-row">
+                            <textarea
+                                ref={textareaRef}
+                                className="ws-composer-textarea"
+                                rows={1}
+                                placeholder={`Mensaje en #${channelName}`}
+                                value={newMessage}
+                                onChange={handleTextareaChange}
+                                onKeyDown={handleKeyDown}
+                            />
+                            <button
+                                className={`ws-composer-send-btn ${newMessage.trim() ? 'ready' : ''}`}
+                                onClick={handleSend}
+                                disabled={!newMessage.trim()}
+                            >
+                                <svg className="ws-send-icon" viewBox="0 0 24 24">
+                                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <div className="ws-composer-bottom-row">
+                            <button className="ws-composer-icon-btn" title="Adjuntar">📎</button>
+                            <button className="ws-composer-icon-btn" title="Emoji">😊</button>
+                            <button className="ws-composer-icon-btn" title="Mencionar">@</button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     )
 }
 
 function stringToColor(str) {
-    let hash = 0;
+    let hash = 0
     for (let i = 0; i < str.length; i++) {
-        hash = str.charCodeAt(i) + ((hash << 5) - hash);
+        hash = str.charCodeAt(i) + ((hash << 5) - hash)
     }
-    const c = (hash & 0x00FFFFFF).toString(16).toUpperCase();
-    return '#' + "00000".substring(0, 6 - c.length) + c;
+    const c = (hash & 0x00FFFFFF).toString(16).toUpperCase()
+    return '#' + '00000'.substring(0, 6 - c.length) + c
 }
 
 export default WorkspaceScreen

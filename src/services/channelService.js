@@ -78,9 +78,10 @@ export async function createChannel(workspace_id, channel_data) {
     return response
 }
 
-export async function getChannelMessages(channel_id) {
+export async function getChannelMessages(workspace_id, channel_id) {
+    console.log('🔍 getChannelMessages: Fetching messages for workspace:', workspace_id, 'channel:', channel_id)
     const response_http = await fetch(
-        URL_API + `/api/channels/${channel_id}/messages`,
+        URL_API + `/api/workspace/${workspace_id}/channels/${channel_id}/messages`,
         {
             method: 'GET',
             headers: {
@@ -89,16 +90,20 @@ export async function getChannelMessages(channel_id) {
             },
         }
     )
+    console.log('📡 getChannelMessages: HTTP status:', response_http.status)
     const response = await response_http.json()
+    console.log('📦 getChannelMessages: Response:', response)
     if(!response.ok){
+        console.error('❌ getChannelMessages: Error response:', response)
         throw new ServerError(response.message, response.status)
     }
     return response
 }
 
-export async function createMessage(channel_id, messageData) {
+export async function createMessage(workspace_id, channel_id, messageData) {
+    console.log('📝 createMessage: Sending message to workspace:', workspace_id, 'channel:', channel_id, 'Data:', messageData)
     const response_http = await fetch(
-        URL_API + `/api/channels/${channel_id}/messages`,
+        URL_API + `/api/workspace/${workspace_id}/channels/${channel_id}/messages`,
         {
             method: 'POST',
             headers: {
@@ -109,8 +114,11 @@ export async function createMessage(channel_id, messageData) {
             body: JSON.stringify(messageData)
         }
     )
+    console.log('📡 createMessage: HTTP status:', response_http.status)
     const response = await response_http.json()
+    console.log('📦 createMessage: Response:', response)
     if (!response.ok) {
+        console.error('❌ createMessage: Error response:', response)
         throw new ServerError(response.message, response.status)
     }
     return response
