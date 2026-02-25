@@ -329,8 +329,8 @@ const ChannelChat = ({ workspaceId, channelId, channels }) => {
                     </div>
                 </div>
                 <div className="ws-topbar-right">
-                    <button className="ws-topbar-icon-btn" title="Buscar"><i class="bi bi-search"></i></button>
-                    <button className="ws-topbar-icon-btn" title="Miembros"><i class="bi bi-people"></i></button>
+                    <button className="ws-topbar-icon-btn" title="Buscar"><i className="bi bi-search"></i></button>
+                    <button className="ws-topbar-icon-btn" title="Miembros"><i className="bi bi-people"></i></button>
                 </div>
             </div>
 
