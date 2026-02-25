@@ -1,47 +1,10 @@
-import { ServerError } from "../utils/errorUtils.js"
+import { ServerError } from "../utils/errorUtils"
 
 const URL_API = import.meta.env.VITE_API_URL
-export async function getWorkspaceList() {
-    const response_http = await fetch(
-        URL_API + '/api/workspace',
-        {
-            method: 'GET',
-            headers: {
-                'x-api-key': import.meta.env.VITE_API_KEY,
-                'Authorization': 'Bearer ' + localStorage.getItem('auth_token'),
-            },
-        }
-    )
-    const response = await response_http.json()
-    if (!response.ok) {
-        throw new ServerError(response.message, response.status)
-    }
-    return response
-}
 
-export async function createWorkspace(workspace_data) {
+export async function getWorkspaceChannels(workspace_id){
     const response_http = await fetch(
-        URL_API + '/api/workspace',
-        {
-            method: 'POST',
-            headers: {
-                'x-api-key': import.meta.env.VITE_API_KEY,
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + localStorage.getItem('auth_token'),
-            },
-            body: JSON.stringify(workspace_data)
-        }
-    )
-    const response = await response_http.json()
-    if (!response.ok) {
-        throw new ServerError(response.message, response.status)
-    }
-    return response
-}
-
-export async function getWorkspaceDetail(workspace_id){
-    const response_http = await fetch(
-        URL_API + `/api/workspace/${workspace_id}`,
+        URL_API + `/api/workspace/${workspace_id}/channels`,
         {
             method: 'GET',
             headers: {
@@ -57,15 +20,17 @@ export async function getWorkspaceDetail(workspace_id){
     return response
 }
 
-export async function getWorkspaceMembers(workspace_id){
+export async function updateChannel(workspace_id, channel_id, channel_data){
     const response_http = await fetch(
-        URL_API + `/api/workspace/${workspace_id}/members`,
+        URL_API + `/api/workspace/${workspace_id}/channel/${channel_id}`,
         {
-            method: 'GET',
+            method: 'PUT',
             headers: {
                 'x-api-key': import.meta.env.VITE_API_KEY,
+                'Content-Type': 'application/json',
                 'Authorization': 'Bearer ' + localStorage.getItem('auth_token'),
             },
+            body: JSON.stringify(channel_data)
         }
     )
     const response = await response_http.json()
@@ -75,35 +40,73 @@ export async function getWorkspaceMembers(workspace_id){
     return response
 }
 
-export async function inviteUser(workspace_id, email) {
+export async function deleteChannel(workspace_id, channel_id) {
     const response_http = await fetch(
-        URL_API + `/api/workspace/${workspace_id}/invite`,
-        {
-            method: 'POST',
-            headers: {
-                'x-api-key': import.meta.env.VITE_API_KEY,
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + localStorage.getItem('auth_token'),
-            },
-            body: JSON.stringify({ email })
-        }
-    )
-    const response = await response_http.json()
-    if (!response.ok) {
-        throw new ServerError(response.message, response.status)
-    }
-    return response
-}
-
-export async function deleteWorkspace(workspace_id) {
-    const response_http = await fetch(
-        URL_API + `/api/workspace/${workspace_id}`,
+        URL_API + `/api/workspace/${workspace_id}/channels/${channel_id}`,
         {
             method: 'DELETE',
             headers: {
                 'x-api-key': import.meta.env.VITE_API_KEY,
                 'Authorization': 'Bearer ' + localStorage.getItem('auth_token'),
             },
+        }
+    )
+    const response = await response_http.json()
+    if (!response.ok) {
+        throw new ServerError(response.message, response.status)
+    }
+    return response
+}
+
+export async function createChannel(workspace_id, channel_data) {
+    const response_http = await fetch(
+        URL_API + `/api/workspace/${workspace_id}/channels`,
+        {
+            method: 'POST',
+            headers: {
+                'x-api-key': import.meta.env.VITE_API_KEY,
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + localStorage.getItem('auth_token'),
+            },
+            body: JSON.stringify(channel_data)
+        }
+    )
+    const response = await response_http.json()
+    if (!response.ok) {
+        throw new ServerError(response.message, response.status)
+    }
+    return response
+}
+
+export async function getChannelMessages(channel_id) {
+    const response_http = await fetch(
+        URL_API + `/api/channels/${channel_id}/messages`,
+        {
+            method: 'GET',
+            headers: {
+                'x-api-key': import.meta.env.VITE_API_KEY,
+                'Authorization': 'Bearer ' + localStorage.getItem('auth_token'),
+            },
+        }
+    )
+    const response = await response_http.json()
+    if(!response.ok){
+        throw new ServerError(response.message, response.status)
+    }
+    return response
+}
+
+export async function createMessage(channel_id, messageData) {
+    const response_http = await fetch(
+        URL_API + `/api/channels/${channel_id}/messages`,
+        {
+            method: 'POST',
+            headers: {
+                'x-api-key': import.meta.env.VITE_API_KEY,
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + localStorage.getItem('auth_token'),
+            },
+            body: JSON.stringify(messageData)
         }
     )
     const response = await response_http.json()

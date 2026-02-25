@@ -1,0 +1,26 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+*{
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+    text-decoration: none;
+}
+
+:root{
+    --bg-gradient-start: #3b0f3a;
+    --bg-gradient-end: #1a171a;
+    --sidebar-bg: #2a1726;
+    --sidebar-plate: #291225;
+    --accent: #b36bf0;
+    --muted: #9b86a1;
+    --card: #241a20;
+    --main-text: #e8e6ea;
+    --muted-text: #b9a9bf;
+    --composer-bg: rgba(255,255,255,0.03);
+    --border: rgba(255,255,255,0.06);
+    --radius: 10px;
+}
+
+html,body,#root{
+    height:100%;
+}

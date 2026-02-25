@@ -1,0 +1,205 @@
+.home-wrapper {
+    font-family: 'Slack-Lato', sans-serif; 
+    color: #1d1c1d;
+    background-color: #ffffff;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.home-nav {
+    padding: 24px 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.slack-logo {
+    height: 26px;
+}
+
+.home-content {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.create-section {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 24px;
+    margin-bottom: 48px;
+}
+
+.create-text h1 {
+    font-size: 28px;
+    line-height: 1.2;
+    margin-bottom: 16px;
+    font-weight: 800;
+}
+
+.create-text p {
+    font-size: 16px;
+    margin-bottom: 24px;
+}
+
+.btn-primary-large {
+    display: inline-block;
+    background-color: #611f69;
+    text-decoration: none;  
+    color: #ffffff;
+    padding: 16px 32px;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 14px;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.divider {
+    position: relative;
+    text-align: center;
+    margin: 40px 0;
+}
+
+.divider::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background-color: #ebebeb;
+    z-index: 1;
+}
+
+.divider span {
+    position: relative;
+    z-index: 2;
+    background-color: #ffffff;
+    padding: 0 15px;
+    font-size: 12px;
+    font-weight: bold;
+    color: #616061;
+}
+
+.workspace-list-section h3 {
+    font-size: 18px;
+    margin-bottom: 8px;
+}
+
+.list-subtitle {
+    font-size: 14px;
+    color: #616061;
+    margin: 0;
+}
+
+.user-email-display {
+    display: block;
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+.workspace-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    border: 1px solid #ebebeb;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    text-decoration: none;
+    color: inherit;
+    transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+.workspace-card:hover {
+    background-color: #f9f9f9;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.card-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.workspace-avatar {
+    width: 48px;
+    height: 48px;
+    background-color: #e0e0e0;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 20px;
+}
+
+.workspace-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.ws-name {
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.ws-members {
+    font-size: 13px;
+    color: #616061;
+}
+
+.card-arrow {
+    color: #616061;
+    font-size: 20px;
+}
+
+@media (min-width: 768px) {
+    .home-nav {
+        justify-content: flex-start;
+        padding: 24px 80px;
+    }
+
+    .home-content {
+        padding: 40px 20px;
+    }
+
+    .create-text h1 {
+        font-size: 44px;
+    }
+
+    .btn-primary-large {
+        width: auto;
+    }
+}
+
+@media (min-width: 1600px) {
+    .home-content {
+        max-width: 1000px;
+    }
+}
+
+@media (max-width: 350px) {
+    .create-text h1 {
+        font-size: 22px;
+    }
+    
+    .card-left {
+        gap: 10px;
+    }
+    
+    .workspace-avatar {
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+    }
+}

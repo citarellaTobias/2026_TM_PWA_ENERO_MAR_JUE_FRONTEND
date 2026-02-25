@@ -1,9 +1,7 @@
-import React, { useEffect } from 'react'
-import { Link, useNavigate } from 'react-router'
-import useForm from '../../hooks/useForm'
-import useRequest from '../../hooks/useRequest'
-import { login } from '../../services/authService'
+import React from 'react'
+import { Link } from 'react-router'
 import useLogin from '../../hooks/useLogin'
+import "./LoginScreen.css"
 
 const LoginScreen = () => {
     const {
@@ -16,34 +14,63 @@ const LoginScreen = () => {
     } = useLogin()
 
     return (
-        <div>
-            <h1>Inicia sesion</h1>
-            <form onSubmit={onSubmitForm}>
-                <div>
-                    <label htmlFor="email">Email:</label>
-                    <input type="email" id="email" name="email" onChange={onChangeFieldValue} value={form_state.email} />
+        <div className="login-page">
+            <header className="login-nav">
+                <div className="logo">
+                    <img src="/slack_logo.svg" alt="Slack" className="slack-logo" />
                 </div>
-                <div>
-                    <label htmlFor="password">Contraseña:</label>
-                    <input type="password" id="password" name="password" onChange={onChangeFieldValue} value={form_state.password} />
+                <div className="nav-right">
+                    ¿Eres nuevo en Slack? <Link to="/register">Crea una cuenta</Link>
                 </div>
-                {
-                    error && <span style={{ color: 'red' }}>{error.message}</span>
-                }
-                {
-                    response
-                    &&
-                    response.ok
-                    &&
-                    <span style={{ color: 'yellowgreen' }}>
-                        Te has logueado exitosamente
-                    </span>
-                }
-                <button type="submit" disabled={loading || (response && response.ok)}>Iniciar sesion</button>
-            </form>
-            <span>
-                Aun no tienes cuenta? <Link to="/register">Registrate</Link>
-            </span>
+            </header>
+
+            <main className="login-main">
+                <h1>Inicia sesión en Slack</h1>
+                <p className="subtitle">Te recomendamos usar la <strong>dirección de correo que usas en el trabajo.</strong></p>
+
+                <form className="login-form" onSubmit={onSubmitForm}>
+                    <div className="input-group">
+                        <input 
+                            type="email" 
+                            id="email" 
+                            name="email" 
+                            placeholder="nombre@email.com"
+                            onChange={onChangeFieldValue} 
+                            value={form_state.email} 
+                            required
+                        />
+                    </div>
+                    <div className="input-group">
+                        <input 
+                            type="password" 
+                            id="password" 
+                            name="password" 
+                            placeholder="tu contraseña"
+                            onChange={onChangeFieldValue} 
+                            value={form_state.password} 
+                            required
+                        />
+                    </div>
+
+                    {error && <div className="error-alert">{error.message}</div>}
+                    
+                    {response && response.ok && (
+                        <div className="success-alert">Te has logueado exitosamente</div>
+                    )}
+
+                    <button 
+                        className="btn-login-submit" 
+                        type="submit" 
+                        disabled={loading || (response && response.ok)}
+                    >
+                        {loading ? 'Iniciando sesión...' : 'Iniciar sesión con el correo'}
+                    </button>
+                </form>
+
+                <div className="login-footer">
+                    <p>¿No sabes qué correo electrónico usas? <a href="#">Te podemos ayudar</a></p>
+                </div>
+            </main>
         </div>
     )
 }

@@ -1,0 +1,149 @@
+.register-page {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-family: "Slack-Lato", "Helvetica Neue", Helvetica, sans-serif;
+    color: #1d1c1d;
+    background-color: #ffffff;
+}
+
+/* Header */
+.register-nav {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px 48px;
+    box-sizing: border-box;
+}
+
+.slack-logo-text {
+    font-size: 24px;
+    font-weight: 900;
+    letter-spacing: -1px;
+}
+
+.nav-right {
+    font-size: 0.9rem;
+    color: #454545;
+}
+
+.nav-right a {
+    color: #1264a3;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+/* Main Content */
+.register-main {
+    max-width: 550px; /* Un poco más ancho que el login para el título largo */
+    width: 100%;
+    text-align: center;
+    margin-top: 40px;
+    padding: 0 20px;
+}
+
+.register-main h1 {
+    font-size: 48px;
+    font-weight: 700;
+    letter-spacing: -0.75px;
+    margin-bottom: 12px;
+}
+
+.subtitle {
+    font-size: 18px;
+    color: #454245;
+    margin-bottom: 32px;
+}
+
+/* Form */
+.register-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.input-group input {
+    width: 100%;
+    height: 44px;
+    padding: 0 12px;
+    font-size: 18px;
+    border: 1px solid #868686;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.input-group input:focus {
+    outline: none;
+    border-color: #1264a3;
+    box-shadow: 0 0 0 1px #1264a3, 0 0 0 4px rgba(18, 100, 163, 0.15);
+}
+
+.btn-register-submit {
+    height: 44px;
+    background-color: #4a154b;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 18px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 8px;
+}
+
+.btn-register-submit:hover {
+    background-color: #5d1c5e;
+}
+
+/* Footer & Extras */
+.register-footer {
+    margin-top: 32px;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: left;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 14px;
+    color: #616061;
+    cursor: pointer;
+    margin-bottom: 20px;
+}
+
+.checkbox-label input {
+    margin-top: 3px;
+}
+
+.terms {
+    font-size: 13px;
+    color: #616061;
+    text-align: center;
+}
+
+.terms a {
+    color: #1264a3;
+    text-decoration: none;
+}
+
+.error-alert {
+    background-color: #f7e8e8;
+    color: #e01e5a;
+    padding: 12px;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.success-alert {
+    background-color: #e7f4ee;
+    color: #2bac76;
+    padding: 12px;
+    border-radius: 4px;
+    font-weight: bold;
+}

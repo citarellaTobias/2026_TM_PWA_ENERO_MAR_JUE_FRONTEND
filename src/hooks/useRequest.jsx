@@ -22,7 +22,7 @@ function useRequest (){
             else{
                 setError(
                     {
-                        message: 'Ha ocurrido una excepcion'
+                        message: 'Ha ocurrido una excepcion',
                     }
                 )
             }

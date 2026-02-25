@@ -1,9 +1,9 @@
 import { useNavigate } from "react-router"
-import useRequest from "./useRequest"
-import { login } from "../services/authService"
-import useForm from "./useForm"
+import useRequest from "./useRequest.jsx"
+import { login } from "../services/authService.js"
+import useForm from "./useForm.jsx"
 import { useContext, useEffect } from "react"
-import { AUTH_TOKEN_KEY, AuthContext } from "../context/AuthContext"
+import { AUTH_TOKEN_KEY, AuthContext } from "../context/AuthContext.jsx"
 
 function useLogin() {
     const navigate = useNavigate()

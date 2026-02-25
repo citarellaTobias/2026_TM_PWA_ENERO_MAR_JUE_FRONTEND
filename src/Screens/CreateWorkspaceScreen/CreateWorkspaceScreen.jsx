@@ -69,4 +69,4 @@ const CreateWorkspaceScreen = () => {
     );
 };
 
-export default CreateWorkspaceScreen;
+export default CreateWorkspaceScreen
