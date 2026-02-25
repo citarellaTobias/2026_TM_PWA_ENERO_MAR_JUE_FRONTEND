@@ -97,7 +97,7 @@ const WorkspaceScreen = () => {
 
             {/* Mobile header */}
             <div className="ws-mobile-header">
-                <button className="ws-mobile-toggle" onClick={() => setShowMobileMenu(true)}><i className="bi bi-list"></i></button>
+                <button className="ws-mobile-toggle" onClick={() => setShowMobileMenu(true)}><i class="bi bi-list"></i></button>
                 <div>{workspaceName}</div>
             </div>
 
