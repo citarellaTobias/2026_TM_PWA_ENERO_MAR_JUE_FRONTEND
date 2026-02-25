@@ -97,8 +97,12 @@ export async function getChannelMessages(workspace_id, channel_id) {
 }
 
 export async function createMessage(workspace_id, channel_id, messageData) {
+    const url = URL_API + `/api/workspace/${workspace_id}/channels/${channel_id}/messages`
+    console.log('📤 Sending POST to:', url)
+    console.log('📦 Message data:', messageData)
+    
     const response_http = await fetch(
-        URL_API + `/api/workspace/${workspace_id}/channels/${channel_id}/messages`,
+        url,
         {
             method: 'POST',
             headers: {
@@ -109,7 +113,19 @@ export async function createMessage(workspace_id, channel_id, messageData) {
             body: JSON.stringify(messageData)
         }
     )
-    const response = await response_http.json()
+    
+    console.log('📥 Response status:', response_http.status)
+    
+    let response
+    try {
+        response = await response_http.json()
+    } catch (e) {
+        console.error('❌ Error parsing JSON response:', e)
+        throw new ServerError(`Error del servidor (HTTP ${response_http.status})`, response_http.status)
+    }
+    
+    console.log('📥 Response:', response)
+    
     if (!response.ok) {
         throw new ServerError(response.message, response.status)
     }

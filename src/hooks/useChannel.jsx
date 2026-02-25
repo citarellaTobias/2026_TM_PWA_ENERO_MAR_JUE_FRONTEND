@@ -44,8 +44,14 @@ const useChannel = (workspaceId, channelId) => {
         
         const newMessage = {
             _id: tempMessageId,
+            message: content,
             content: content,
             created_at: new Date().toISOString(),
+            fk_id_workspace_member: {
+                fk_id_user: {
+                    username: session?.username || 'User'
+                }
+            },
             fk_workspace_member_id: {
                 fk_id_user: {
                     username: session?.username || 'User'
@@ -58,7 +64,10 @@ const useChannel = (workspaceId, channelId) => {
         setPendingMessageIds(prev => new Set([...prev, tempMessageId]))
         
         try {
-            await sendMessageRequest.sendRequest(() => createMessage(workspaceId, channelId, { content }))
+            await sendMessageRequest.sendRequest(() => createMessage(workspaceId, channelId, { 
+                message: content,
+                content: content 
+            }))
             
             if (sendMessageRequest.error) throw new Error()
             

@@ -351,7 +351,7 @@ const ChannelChat = ({ workspaceId, channelId, channels }) => {
                                 <span>{dateLabel}</span>
                             </div>
                             {msgs.map(msg => {
-                                const authorName = msg.fk_workspace_member_id?.fk_id_user?.username || msg.author_name || msg.author?.name || msg.author || 'User'
+                                const authorName = msg.fk_id_workspace_member?.fk_id_user?.username || msg.fk_workspace_member_id?.fk_id_user?.username || msg.author_name || msg.author?.name || msg.author || 'User'
                                 const initial = (authorName || 'U').charAt(0).toUpperCase()
                                 const time = new Date(msg.created_at || msg.createdAt || msg.time || msg.timestamp)
                                     .toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -370,7 +370,7 @@ const ChannelChat = ({ workspaceId, channelId, channels }) => {
                                                 <span className="ws-msg-time">{time}</span>
                                             </div>
                                             <div className="ws-msg-content">
-                                                {msg.mensaje || msg.content || msg.text || msg.body}
+                                                {msg.message || msg.mensaje || msg.content || msg.text || msg.body}
                                             </div>
                                         </div>
                                     </div>
