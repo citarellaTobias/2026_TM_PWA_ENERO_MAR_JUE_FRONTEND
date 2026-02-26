@@ -4,6 +4,7 @@ import useWorkspaceDetail from '../../hooks/useWorkspaceDetail'
 import useChannel from '../../hooks/useChannel'
 import { inviteUser, getWorkspaceMembers, deleteWorkspace } from '../../services/workspaceService'
 import { WorkspaceContext } from '../../context/WorkspaceContext'
+import { AuthContext } from '../../context/AuthContext'
 import './WorkspaceScreen.css'
 
 const WorkspaceScreen = () => {
@@ -16,7 +17,9 @@ const WorkspaceScreen = () => {
         channels,
         loading: workspaceLoading,
         error: workspaceError,
-        createChannel
+        createChannel,
+        updateChannel,
+        deleteChannel
     } = useWorkspaceDetail()
 
     const [selectedChannelId, setSelectedChannelId] = useState(null)
@@ -29,6 +32,14 @@ const WorkspaceScreen = () => {
     const [showMembersModal, setShowMembersModal] = useState(false)
     const [members, setMembers] = useState([])
     const [membersLoading, setMembersLoading] = useState(false)
+
+    const [showCreateChannelModal, setShowCreateChannelModal] = useState(false)
+    const [createChannelName, setCreateChannelName] = useState('')
+
+    const [showEditChannelModal, setShowEditChannelModal] = useState(false)
+    const [editingChannelId, setEditingChannelId] = useState(null)
+    const [editChannelName, setEditChannelName] = useState('')
+    const [editChannelStatus, setEditChannelStatus] = useState(null)
 
     const [showMobileMenu, setShowMobileMenu] = useState(false)
 
@@ -69,6 +80,62 @@ const WorkspaceScreen = () => {
                 navigate('/home')
             } catch (err) {
                 alert('Error al eliminar workspace: ' + (err.message || 'Error desconocido'))
+            }
+        }
+    }
+
+    const handleEditChannelOpen = (channelId, channelName) => {
+        setEditingChannelId(channelId)
+        setEditChannelName(channelName)
+        setEditChannelStatus(null)
+        setShowEditChannelModal(true)
+    }
+
+    const handleUpdateChannel = async () => {
+        if (!editChannelName.trim()) {
+            setEditChannelStatus({ type: 'error', message: 'El nombre del canal no puede estar vacío' })
+            return
+        }
+
+        try {
+            await updateChannel(editingChannelId, editChannelName.trim())
+            setEditChannelStatus({ type: 'success', message: 'Canal actualizado!' })
+            setTimeout(() => {
+                setShowEditChannelModal(false)
+                setEditChannelStatus(null)
+                setEditingChannelId(null)
+                setEditChannelName('')
+            }, 1500)
+        } catch (err) {
+            setEditChannelStatus({ type: 'error', message: err.message || 'Error al actualizar el canal' })
+        }
+    }
+
+    const handleDeleteChannelModal = async () => {
+        if (window.confirm('¿Estás seguro de que quieres eliminar este canal? Esta acción no se puede deshacer.')) {
+            try {
+                await deleteChannel(editingChannelId)
+                
+                // If deleted channel was selected, select first available channel
+                if (selectedChannelId === editingChannelId) {
+                    const remainingChannels = channels.filter(ch => {
+                        const chId = ch.id || ch._id || ch.channel_id
+                        return chId !== editingChannelId
+                    })
+                    if (remainingChannels.length > 0) {
+                        const firstId = remainingChannels[0].id || remainingChannels[0]._id || remainingChannels[0].channel_id
+                        setSelectedChannelId(firstId)
+                    } else {
+                        setSelectedChannelId(null)
+                    }
+                }
+                
+                setShowEditChannelModal(false)
+                setEditChannelStatus(null)
+                setEditingChannelId(null)
+                setEditChannelName('')
+            } catch (err) {
+                setEditChannelStatus({ type: 'error', message: err.message || 'Error al eliminar el canal' })
             }
         }
     }
@@ -124,7 +191,7 @@ const WorkspaceScreen = () => {
 
                     <div className="ws-header-buttons">
                         <button className="ws-btn-invite" onClick={() => setShowInviteModal(true)}>
-                            + Invitar
+                            <i className="bi bi-person-fill-add"> Invitar</i>
                         </button>
                         <button className="ws-btn-members" onClick={handleShowMembers}>
                             Miembros
@@ -136,6 +203,13 @@ const WorkspaceScreen = () => {
                     <div className="ws-section">
                         <div className="ws-section-header">
                             <span className="ws-section-title">Canales</span>
+                            <button 
+                                className="ws-section-add-btn"
+                                onClick={() => setShowCreateChannelModal(true)}
+                                title="Crear canal"
+                            >
+                                +
+                            </button>
                         </div>
                         {channels && channels.map(channel => {
                             const id = channel.id || channel._id || channel.channel_id
@@ -147,32 +221,23 @@ const WorkspaceScreen = () => {
                                 >
                                     <span className="ws-ch-prefix">#</span>
                                     <span className="ws-ch-name">{channel.name || channel.title}</span>
+                                    <button 
+                                        className="ws-ch-edit-btn"
+                                        onClick={(e) => {
+                                            e.stopPropagation()
+                                            handleEditChannelOpen(id, channel.name || channel.title)
+                                        }}
+                                        title="Editar canal"
+                                    >
+                                        <i className="bi bi-pencil"></i>
+                                    </button>
                                 </div>
                             )
                         })}
                     </div>
                 </div>
 
-                <div className="ws-create-ch">
-                    <input
-                        type="text"
-                        placeholder="Nuevo canal..."
-                        value={newChannelName}
-                        onChange={(e) => setNewChannelName(e.target.value)}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter' && newChannelName.trim()) {
-                                createChannel(newChannelName)
-                                setNewChannelName('')
-                            }
-                        }}
-                    />
-                    <button onClick={() => {
-                        if (newChannelName.trim()) {
-                            createChannel(newChannelName)
-                            setNewChannelName('')
-                        }
-                    }}>+</button>
-                </div>
+
             </div>
 
             {/* Main panel */}
@@ -220,6 +285,108 @@ const WorkspaceScreen = () => {
                             <button className="ws-btn-primary" onClick={handleInvite}>
                                 Enviar invitación
                             </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Create Channel Modal */}
+            {showCreateChannelModal && (
+                <div className="ws-modal-overlay" onClick={(e) => e.target === e.currentTarget && setShowCreateChannelModal(false)}>
+                    <div className="ws-modal">
+                        <div className="ws-modal-header">
+                            <h3>Crear canal</h3>
+                            <button className="ws-modal-close" onClick={() => setShowCreateChannelModal(false)}>×</button>
+                        </div>
+                        <div className="ws-modal-body">
+                            <div className="ws-form-group">
+                                <label className="ws-form-label">Nombre del canal</label>
+                                <input
+                                    type="text"
+                                    value={createChannelName}
+                                    onChange={(e) => setCreateChannelName(e.target.value)}
+                                    placeholder="ej: general, random, dev..."
+                                    className="ws-form-input"
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' && createChannelName.trim()) {
+                                            createChannel(createChannelName.trim())
+                                            setCreateChannelName('')
+                                            setShowCreateChannelModal(false)
+                                        }
+                                    }}
+                                    autoFocus
+                                />
+                            </div>
+                        </div>
+                        <div className="ws-modal-buttons">
+                            <button className="ws-btn-secondary" onClick={() => setShowCreateChannelModal(false)}>
+                                Cancelar
+                            </button>
+                            <button 
+                                className="ws-btn-primary" 
+                                onClick={() => {
+                                    if (createChannelName.trim()) {
+                                        createChannel(createChannelName.trim())
+                                        setCreateChannelName('')
+                                        setShowCreateChannelModal(false)
+                                    }
+                                }}
+                                disabled={!createChannelName.trim()}
+                            >
+                                Crear canal
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Edit Channel Modal */}
+            {showEditChannelModal && (
+                <div className="ws-modal-overlay" onClick={(e) => e.target === e.currentTarget && setShowEditChannelModal(false)}>
+                    <div className="ws-modal">
+                        <div className="ws-modal-header">
+                            <h3>Editar canal</h3>
+                            <button className="ws-modal-close" onClick={() => setShowEditChannelModal(false)}>×</button>
+                        </div>
+                        <div className="ws-modal-body">
+                            {editChannelStatus && (
+                                <div className={`ws-alert ${editChannelStatus.type === 'error' ? 'error' : 'success'}`}>
+                                    {editChannelStatus.message}
+                                </div>
+                            )}
+                            <div className="ws-form-group">
+                                <label className="ws-form-label">Nombre del canal</label>
+                                <input
+                                    type="text"
+                                    value={editChannelName}
+                                    onChange={(e) => setEditChannelName(e.target.value)}
+                                    placeholder="Nombre del canal"
+                                    className="ws-form-input"
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' && editChannelName.trim()) {
+                                            handleUpdateChannel()
+                                        }
+                                    }}
+                                    autoFocus
+                                />
+                            </div>
+                        </div>
+                        <div className="ws-modal-buttons">
+                            <button className="ws-btn-danger" onClick={handleDeleteChannelModal}>
+                                Eliminar canal
+                            </button>
+                            <div className="ws-modal-buttons-right">
+                                <button className="ws-btn-secondary" onClick={() => setShowEditChannelModal(false)}>
+                                    Cancelar
+                                </button>
+                                <button 
+                                    className="ws-btn-primary" 
+                                    onClick={handleUpdateChannel}
+                                    disabled={!editChannelName.trim()}
+                                >
+                                    Guardar
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -285,16 +452,20 @@ const WorkspaceScreen = () => {
 }
 
 const ChannelChat = ({ workspaceId, channelId, channels }) => {
-    const { messages, loading, sendMessage, hasFetchedOnce, pendingMessageIds, isUserAtBottom } = useChannel(workspaceId, channelId)
+    const { messages, loading, sendMessage, deleteMessage, hasFetchedOnce, pendingMessageIds, isUserAtBottom } = useChannel(workspaceId, channelId)
+    const { session } = useContext(AuthContext)
     const [newMessage, setNewMessage] = useState('')
     const [previousMessagesCount, setPreviousMessagesCount] = useState(0)
     const messagesEndRef = useRef(null)
     const textareaRef = useRef(null)
 
+    const [showDeleteModal, setShowDeleteModal] = useState(false)
+    const [deletingMessageId, setDeletingMessageId] = useState(null)
+    const [deleteError, setDeleteError] = useState(null)
+
     const channel = channels.find(c => (c.id || c._id || c.channel_id) === channelId)
     const channelName = channel ? (channel.name || channel.title) : 'canal'
 
-    // Auto-scroll only when there are new messages AND user is at bottom
     useEffect(() => {
         if (messages.length > previousMessagesCount && isUserAtBottom?.current) {
             messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -325,7 +496,22 @@ const ChannelChat = ({ workspaceId, channelId, channels }) => {
         e.target.style.height = Math.min(e.target.scrollHeight, 200) + 'px'
     }
 
-    // Group messages by date
+    const handleDeleteMessageClick = (messageId) => {
+        setDeletingMessageId(messageId)
+        setDeleteError(null)
+        setShowDeleteModal(true)
+    }
+
+    const handleConfirmDelete = async () => {
+        try {
+            await deleteMessage(deletingMessageId)
+            setShowDeleteModal(false)
+            setDeletingMessageId(null)
+        } catch (err) {
+            setDeleteError(err.message || 'Error al eliminar el mensaje')
+        }
+    }
+
     const groupedMessages = messages.reduce((groups, msg) => {
         const date = new Date(msg.created_at || msg.createdAt || msg.time || msg.timestamp)
         const dateKey = date.toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' })
@@ -336,7 +522,6 @@ const ChannelChat = ({ workspaceId, channelId, channels }) => {
 
     return (
         <div className="ws-channel-chat">
-            {/* Topbar */}
             <div className="ws-topbar">
                 <div className="ws-topbar-left">
                     <div className="ws-topbar-name">
@@ -350,7 +535,6 @@ const ChannelChat = ({ workspaceId, channelId, channels }) => {
                 </div>
             </div>
 
-            {/* Messages */}
             <div className="ws-channel-body">
                 <div className="ws-messages">
                     {messages.length === 0 && hasFetchedOnce && !loading && (
@@ -372,20 +556,31 @@ const ChannelChat = ({ workspaceId, channelId, channels }) => {
                                 const time = new Date(msg.created_at || msg.createdAt || msg.time || msg.timestamp)
                                     .toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                                 const isPending = pendingMessageIds?.has(msg._id)
+                                const isDeleted = msg.isDeleted
+                                const canDelete = session?.user_id === msg.fk_id_workspace_member?.fk_id_user?._id || session?.user_id === msg.fk_id_workspace_member?.user_id
 
                                 return (
-                                    <div key={msg._id || msg.id || msg.message_id} className={`ws-msg-row ${isPending ? 'pending' : ''}`}>
+                                    <div key={msg._id || msg.id || msg.message_id} className={`ws-msg-row ${isPending ? 'pending' : ''} ${isDeleted ? 'deleted' : ''}`}>
                                         <div className="ws-msg-avatar" style={{ backgroundColor: stringToColor(authorName) }}>
                                             {initial}
                                         </div>
                                         <div className="ws-msg-body">
                                             <div className="ws-msg-header">
                                                 <span className="ws-msg-author">{authorName}
-                                                    {isPending && <span className="ws-msg-pending-indicator" title="Enviando..."><i class="bi bi-clock-history"></i></span>}
+                                                    {isPending && <span className="ws-msg-pending-indicator" title="Enviando..."><i className="bi bi-clock-history"></i></span>}
                                                 </span>
                                                 <span className="ws-msg-time">{time}</span>
+                                                {canDelete && !isDeleted && (
+                                                    <button 
+                                                        className="ws-msg-delete-btn"
+                                                        onClick={() => handleDeleteMessageClick(msg._id)}
+                                                        title="Eliminar mensaje"
+                                                    >
+                                                        <i className="bi bi-trash"></i>
+                                                    </button>
+                                                )}
                                             </div>
-                                            <div className="ws-msg-content">
+                                            <div className={`ws-msg-content ${isDeleted ? 'deleted-text' : ''}`}>
                                                 {msg.message || msg.mensaje || msg.content || msg.text || msg.body}
                                             </div>
                                         </div>
@@ -397,7 +592,6 @@ const ChannelChat = ({ workspaceId, channelId, channels }) => {
                     <div ref={messagesEndRef} />
                 </div>
 
-                {/* Composer */}
                 <div className="ws-composer-wrapper">
                     <div className="ws-composer-box">
                         <div className="ws-composer-input-row">
@@ -428,6 +622,34 @@ const ChannelChat = ({ workspaceId, channelId, channels }) => {
                     </div>
                 </div>
             </div>
+
+            {/* Delete Message Modal */}
+            {showDeleteModal && (
+                <div className="ws-modal-overlay" onClick={(e) => e.target === e.currentTarget && setShowDeleteModal(false)}>
+                    <div className="ws-modal">
+                        <div className="ws-modal-header">
+                            <h3>Eliminar mensaje</h3>
+                            <button className="ws-modal-close" onClick={() => setShowDeleteModal(false)}>×</button>
+                        </div>
+                        <div className="ws-modal-body">
+                            {deleteError && (
+                                <div className="ws-alert error">
+                                    {deleteError}
+                                </div>
+                            )}
+                            <p>¿Estás seguro de que quieres eliminar este mensaje?</p>
+                        </div>
+                        <div className="ws-modal-buttons">
+                            <button className="ws-btn-secondary" onClick={() => setShowDeleteModal(false)}>
+                                Cancelar
+                            </button>
+                            <button className="ws-btn-danger" onClick={handleConfirmDelete}>
+                                Eliminar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }

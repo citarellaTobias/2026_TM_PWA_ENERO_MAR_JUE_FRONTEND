@@ -1,4 +1,4 @@
-.bi{
+.ws-topbar-icon-btn{
   color: #ffffff;
 }
 .ws-layout {
@@ -240,7 +240,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 16px;
+  padding: 6px 8px 6px 16px;
   cursor: pointer;
   color: rgba(255,255,255,0.55);
   font-size: 14px;
@@ -250,6 +250,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   user-select: none;
+  justify-content: space-between;
 }
 .ws-ch-item:hover {
   background: rgba(255,255,255,0.05);
@@ -276,6 +277,31 @@
   flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.ws-ch-edit-btn {
+  background: transparent;
+  border: none;
+  color: rgba(255,255,255,0.4);
+  cursor: pointer;
+  padding: 4px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  transition: color 100ms, opacity 100ms;
+  opacity: 0;
+  flex-shrink: 0;
+}
+
+.ws-ch-item:hover .ws-ch-edit-btn {
+  opacity: 1;
+  color: rgba(255,255,255,0.6);
+}
+
+.ws-ch-edit-btn:hover {
+  color: #ffffff;
 }
 
 /* Create channel input */
@@ -499,11 +525,43 @@
   color: rgba(255,255,255,0.35);
 }
 
+.ws-msg-delete-btn {
+  background: transparent;
+  border: none;
+  color: rgba(255,255,255,0.3);
+  cursor: pointer;
+  padding: 2px 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  transition: color 100ms;
+  opacity: 0;
+  margin-left: auto;
+}
+
+.ws-msg-row:hover .ws-msg-delete-btn {
+  opacity: 1;
+}
+
+.ws-msg-delete-btn:hover {
+  color: #e01e5a;
+}
+
 .ws-msg-content {
   font-size: 15px;
   color: #d1d2d3;
   line-height: 1.5;
   word-break: break-word;
+}
+
+.ws-msg-content.deleted-text {
+  color: rgba(255,255,255,0.35);
+  font-style: italic;
+}
+
+.ws-msg-row.deleted {
+  opacity: 0.7;
 }
 
 .ws-msg-row.pending {
@@ -752,6 +810,16 @@
   justify-content: flex-end;
   gap: 8px;
   padding: 0 20px 18px;
+}
+
+.ws-modal-buttons .ws-btn-danger {
+  margin-right: auto;
+  margin-left: 0;
+}
+
+.ws-modal-buttons-right {
+  display: flex;
+  gap: 8px;
 }
 
 .ws-btn-secondary {

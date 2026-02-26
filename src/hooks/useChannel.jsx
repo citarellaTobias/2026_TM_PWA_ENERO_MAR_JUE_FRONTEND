@@ -1,6 +1,6 @@
 import { useState, useEffect, useContext, useRef } from 'react'
 import useRequest from './useRequest.jsx'
-import { getChannelMessages, createMessage } from '../services/channelService.js'
+import { getChannelMessages, createMessage, deleteMessage as deleteMessageService } from '../services/channelService.js'
 import { AuthContext } from '../context/AuthContext.jsx'
 
 const useChannel = (workspaceId, channelId) => {
@@ -131,11 +131,37 @@ const useChannel = (workspaceId, channelId) => {
         }
     }
 
+    const deleteMessage = async (messageId) => {
+        try {
+            // Mark as deleted locally first for instant feedback
+            setMessages(prev => 
+                prev.map(msg => 
+                    msg._id === messageId 
+                        ? { ...msg, isDeleted: true, message: 'Mensaje borrado', content: 'Mensaje borrado' }
+                        : msg
+                )
+            )
+            
+            // Delete from server
+            await deleteMessageService(workspaceId, channelId, messageId)
+        } catch (err) {
+            console.error('Error deleting message:', err)
+            // Revert if error
+            setMessages(prev => prev.map(msg => 
+                msg._id === messageId 
+                    ? { ...msg, isDeleted: false }
+                    : msg
+            ))
+            throw err
+        }
+    }
+
     return {
         messages,
         loading: messagesRequest.loading,
         isSending: sendMessageRequest.loading,
         sendMessage,
+        deleteMessage,
         hasFetchedOnce,
         pendingMessageIds,
         isUserAtBottom: isUserAtBottomRef

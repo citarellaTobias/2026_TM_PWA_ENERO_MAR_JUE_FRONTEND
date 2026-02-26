@@ -75,9 +75,9 @@ export async function getWorkspaceMembers(workspace_id){
     return response
 }
 
-export async function inviteUser(workspace_id, email) {
+export async function inviteUser(workspace_id, email, role = 'Member') {
     const response_http = await fetch(
-        URL_API + `/api/workspace/${workspace_id}/invite`,
+        URL_API + `/api/workspace/${workspace_id}/members`,
         {
             method: 'POST',
             headers: {
@@ -85,7 +85,7 @@ export async function inviteUser(workspace_id, email) {
                 'Content-Type': 'application/json',
                 'Authorization': 'Bearer ' + localStorage.getItem('auth_token'),
             },
-            body: JSON.stringify({ email })
+            body: JSON.stringify({ email, role })
         }
     )
     const response = await response_http.json()

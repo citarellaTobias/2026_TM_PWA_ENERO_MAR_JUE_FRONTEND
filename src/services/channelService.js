@@ -22,7 +22,7 @@ export async function getWorkspaceChannels(workspace_id){
 
 export async function updateChannel(workspace_id, channel_id, channel_data){
     const response_http = await fetch(
-        URL_API + `/api/workspace/${workspace_id}/channel/${channel_id}`,
+        URL_API + `/api/workspace/${workspace_id}/channels/${channel_id}/update`,
         {
             method: 'PUT',
             headers: {
@@ -120,6 +120,24 @@ export async function createMessage(workspace_id, channel_id, messageData) {
         throw new ServerError(`Error del servidor (HTTP ${response_http.status})`, response_http.status)
     }
     
+    if (!response.ok) {
+        throw new ServerError(response.message, response.status)
+    }
+    return response
+}
+
+export async function deleteMessage(workspace_id, channel_id, message_id) {
+    const response_http = await fetch(
+        URL_API + `/api/workspace/${workspace_id}/channels/${channel_id}/messages/${message_id}`,
+        {
+            method: 'DELETE',
+            headers: {
+                'x-api-key': import.meta.env.VITE_API_KEY,
+                'Authorization': 'Bearer ' + localStorage.getItem('auth_token'),
+            },
+        }
+    )
+    const response = await response_http.json()
     if (!response.ok) {
         throw new ServerError(response.message, response.status)
     }
