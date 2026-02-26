@@ -238,17 +238,32 @@ const WorkspaceScreen = () => {
                                 <div>Cargando miembros...</div>
                             ) : (
                                 <ul className="ws-members-list">
-                                    {members.map(m => (
-                                        <li key={m._id}>
-                                            <div className="ws-msg-avatar" style={{ backgroundColor: stringToColor(m.fk_id_user?.username || 'User') }}>
-                                                {(m.fk_id_user?.username || 'U').charAt(0).toUpperCase()}
-                                            </div>
-                                            <div className="ws-member-info">
-                                                <div className="ws-member-name">{m.fk_id_user?.username || 'Unknown User'}</div>
-                                                <div className="ws-member-meta">{m.fk_id_user?.email} · {m.role}</div>
-                                            </div>
-                                        </li>
-                                    ))}
+                                    {members.map(m => {
+                                        const username =
+                                            m.fk_id_user?.username ||
+                                            m.member_username_user ||
+                                            m.username ||
+                                            'Unknown User'
+                                        const email =
+                                            m.fk_id_user?.email ||
+                                            m.member_email_user ||
+                                            m.email ||
+                                            ''
+                                        const role = m.role || m.member_role || 'Member'
+                                        const memberId = m._id || m.member_id || m.id
+
+                                        return (
+                                            <li key={memberId}>
+                                                <div className="ws-msg-avatar" style={{ backgroundColor: stringToColor(username) }}>
+                                                    {username.charAt(0).toUpperCase()}
+                                                </div>
+                                                <div className="ws-member-info">
+                                                    <div className="ws-member-name">{username}</div>
+                                                    <div className="ws-member-meta">{email} · {role}</div>
+                                                </div>
+                                            </li>
+                                        )
+                                    })}
                                 </ul>
                             )}
                         </div>
