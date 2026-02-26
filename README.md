@@ -1,16 +1,38 @@
-# React + Vite
+# Clon de Slack - Frontend
+## Descripción
+Esta es la interfaz de usuario (Frontend) para el clon de Slack, desarrollada como proyecto final para la diplomatura de Full-Stack Developer de la UTN.
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Esta aplicación cliente se conecta con nuestra API REST (Backend) para gestionar la autenticación de usuarios, la navegación entre espacios de trabajo (workspaces), la administración de canales y el envío o lectura de mensajes en tiempo real.
 
-Currently, two official plugins are available:
+## Tecnologías Utilizadas
+- React (v19): Librería principal para la construcción de interfaces de usuario y componentes interactivos.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- Vite: Entorno de desarrollo ultrarrápido y empaquetador para el proyecto.
 
-## React Compiler
+- React Router (v7): Herramienta para manejar la navegación interna y la protección de rutas privadas (como el dashboard o los canales) sin recargar la página.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- JWT-Decode: Utilizado para decodificar los JSON Web Tokens del lado del cliente, permitiendo extraer la información del usuario logueado y validar su sesión.
 
-## Expanding the ESLint configuration
+- Bootstrap Icons & React Icons: Librerías utilizadas para la iconografía de la interfaz (menús, botones de enviar, configuración, etc.).
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- Fetch API: Para realizar las peticiones HTTP al servidor backend.
+
+## Características Principales
+### Desde esta interfaz el usuario puede:
+
+- Autenticación: Registrarse e iniciar sesión. La aplicación guarda y gestiona el token JWT para mantener la sesión activa.
+
+- Gestión de Workspaces: Ver sus espacios de trabajo disponibles, crear nuevos y administrar invitaciones/miembros.
+
+- Navegación de Canales: Moverse fluidamente entre los distintos canales de un espacio de trabajo.
+
+- Mensajería: Interfaz de chat funcional para enviar y leer mensajes dentro de los canales seleccionados.
+
+## Instrucciones para ejecutar el proyecto
+
+- Instalar las dependencias del proyecto:
+npm install
+
+- Iniciar el servidor de desarrollo:
+
+npm run dev
