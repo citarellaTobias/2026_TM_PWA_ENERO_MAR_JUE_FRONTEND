@@ -1,3 +1,4 @@
+import 'bootstrap-icons/font/bootstrap-icons.css';
 import React from "react"
 import { Route, Routes } from 'react-router'
 import LoginScreen from './Screens/LoginScreen/LoginScreen'

@@ -116,7 +116,6 @@ const WorkspaceScreen = () => {
             try {
                 await deleteChannel(editingChannelId)
                 
-                // If deleted channel was selected, select first available channel
                 if (selectedChannelId === editingChannelId) {
                     const remainingChannels = channels.filter(ch => {
                         const chId = ch.id || ch._id || ch.channel_id
@@ -157,13 +156,11 @@ const WorkspaceScreen = () => {
     return (
         <div className="ws-layout">
 
-            {/* Mobile header */}
             <div className="ws-mobile-header">
                 <button className="ws-mobile-toggle" onClick={() => setShowMobileMenu(true)}><i className="bi bi-list"></i></button>
                 <div>{workspaceName}</div>
             </div>
 
-            {/* Sidebar */}
             <div className={`ws-sidebar ${showMobileMenu ? 'show' : ''}`}>
                 <div className="ws-sidebar-header">
                     <div className="ws-sidebar-header-top">
@@ -236,24 +233,21 @@ const WorkspaceScreen = () => {
                         })}
                     </div>
                 </div>
-
-
             </div>
 
-            {/* Main panel */}
             <div className="ws-main">
                 {selectedChannelId ? (
                     <ChannelChat 
                         workspaceId={workspaceId} 
                         channelId={selectedChannelId} 
-                        channels={channels || []} 
+                        channels={channels || []}
+                        member={member}
                     />
                 ) : (
                     <div className="ws-no-channel">Selecciona un canal para comenzar a chatear</div>
                 )}
             </div>
 
-            {/* Invite Modal */}
             {showInviteModal && (
                 <div className="ws-modal-overlay" onClick={(e) => e.target === e.currentTarget && setShowInviteModal(false)}>
                     <div className="ws-modal">
@@ -290,7 +284,6 @@ const WorkspaceScreen = () => {
                 </div>
             )}
 
-            {/* Create Channel Modal */}
             {showCreateChannelModal && (
                 <div className="ws-modal-overlay" onClick={(e) => e.target === e.currentTarget && setShowCreateChannelModal(false)}>
                     <div className="ws-modal">
@@ -340,7 +333,6 @@ const WorkspaceScreen = () => {
                 </div>
             )}
 
-            {/* Edit Channel Modal */}
             {showEditChannelModal && (
                 <div className="ws-modal-overlay" onClick={(e) => e.target === e.currentTarget && setShowEditChannelModal(false)}>
                     <div className="ws-modal">
@@ -392,7 +384,6 @@ const WorkspaceScreen = () => {
                 </div>
             )}
 
-            {/* Members Modal */}
             {showMembersModal && (
                 <div className="ws-modal-overlay" onClick={(e) => e.target === e.currentTarget && setShowMembersModal(false)}>
                     <div className="ws-modal wide">
@@ -451,7 +442,7 @@ const WorkspaceScreen = () => {
     )
 }
 
-const ChannelChat = ({ workspaceId, channelId, channels }) => {
+const ChannelChat = ({ workspaceId, channelId, channels, member }) => {
     const { messages, loading, sendMessage, deleteMessage, hasFetchedOnce, pendingMessageIds, isUserAtBottom } = useChannel(workspaceId, channelId)
     const { session } = useContext(AuthContext)
     const [newMessage, setNewMessage] = useState('')
@@ -557,7 +548,21 @@ const ChannelChat = ({ workspaceId, channelId, channels }) => {
                                     .toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                                 const isPending = pendingMessageIds?.has(msg._id)
                                 const isDeleted = msg.isDeleted
-                                const canDelete = session?.user_id === msg.fk_id_workspace_member?.fk_id_user?._id || session?.user_id === msg.fk_id_workspace_member?.user_id
+                                const messageText = isDeleted
+                                    ? 'Mensaje borrado'
+                                    : (msg.message || msg.mensaje || msg.content || msg.text || msg.body)
+
+                                const authorUserId =
+                                    msg.fk_id_workspace_member?.fk_id_user?._id ||
+                                    msg.fk_workspace_member_id?.fk_id_user?._id ||
+                                    msg.fk_id_user?._id ||
+                                    msg.user_id
+
+                                // Solo admin/owner o autor del mensaje pueden eliminar
+                                const currentUserId = session?.user_id || session?.id || session?._id
+                                const isAuthor = currentUserId && String(currentUserId) === String(authorUserId)
+                                const isAdmin = member?.role === 'Admin' || member?.role === 'Owner'
+                                const canDelete = (isAuthor || isAdmin) && !isDeleted
 
                                 return (
                                     <div key={msg._id || msg.id || msg.message_id} className={`ws-msg-row ${isPending ? 'pending' : ''} ${isDeleted ? 'deleted' : ''}`}>
@@ -570,7 +575,7 @@ const ChannelChat = ({ workspaceId, channelId, channels }) => {
                                                     {isPending && <span className="ws-msg-pending-indicator" title="Enviando..."><i className="bi bi-clock-history"></i></span>}
                                                 </span>
                                                 <span className="ws-msg-time">{time}</span>
-                                                {canDelete && !isDeleted && (
+                                                {canDelete && (
                                                     <button 
                                                         className="ws-msg-delete-btn"
                                                         onClick={() => handleDeleteMessageClick(msg._id)}
@@ -581,7 +586,7 @@ const ChannelChat = ({ workspaceId, channelId, channels }) => {
                                                 )}
                                             </div>
                                             <div className={`ws-msg-content ${isDeleted ? 'deleted-text' : ''}`}>
-                                                {msg.message || msg.mensaje || msg.content || msg.text || msg.body}
+                                                {messageText}
                                             </div>
                                         </div>
                                     </div>
@@ -623,7 +628,6 @@ const ChannelChat = ({ workspaceId, channelId, channels }) => {
                 </div>
             </div>
 
-            {/* Delete Message Modal */}
             {showDeleteModal && (
                 <div className="ws-modal-overlay" onClick={(e) => e.target === e.currentTarget && setShowDeleteModal(false)}>
                     <div className="ws-modal">

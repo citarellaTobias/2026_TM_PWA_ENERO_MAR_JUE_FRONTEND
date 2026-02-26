@@ -130,7 +130,7 @@ export async function deleteMessage(workspace_id, channel_id, message_id) {
     const response_http = await fetch(
         URL_API + `/api/workspace/${workspace_id}/channels/${channel_id}/messages/${message_id}`,
         {
-            method: 'DELETE',
+            method: 'PATCH',
             headers: {
                 'x-api-key': import.meta.env.VITE_API_KEY,
                 'Authorization': 'Bearer ' + localStorage.getItem('auth_token'),
