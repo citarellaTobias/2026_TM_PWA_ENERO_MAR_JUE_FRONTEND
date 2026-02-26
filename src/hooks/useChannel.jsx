@@ -12,6 +12,7 @@ const useChannel = (workspaceId, channelId) => {
     const sendMessageRequest = useRequest()
     const [pendingMessageIds, setPendingMessageIds] = useState(new Set())
 
+    // Fetch messages on mount and when channel changes
     useEffect(() => {
         if (!channelId || !workspaceId) return
 
@@ -28,6 +29,18 @@ const useChannel = (workspaceId, channelId) => {
         }
 
         fetchMessages()
+        
+        // Set up polling - fetch messages every 2 seconds
+        const pollInterval = setInterval(() => {
+            console.log('🔄 Polling for new messages...')
+            messagesRequest.sendRequest(() => getChannelMessages(workspaceId, channelId))
+                .catch(err => console.error('Error polling messages:', err))
+        }, 2000)
+
+        // Cleanup interval on unmount or when channel changes
+        return () => {
+            clearInterval(pollInterval)
+        }
     }, [channelId, workspaceId])
 
     useEffect(() => {
