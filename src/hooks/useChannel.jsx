@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext } from 'react'
+import { useState, useEffect, useContext, useRef } from 'react'
 import useRequest from './useRequest.jsx'
 import { getChannelMessages, createMessage } from '../services/channelService.js'
 import { AuthContext } from '../context/AuthContext.jsx'
@@ -7,6 +7,8 @@ const useChannel = (workspaceId, channelId) => {
     const [messages, setMessages] = useState([])
     const [hasFetchedOnce, setHasFetchedOnce] = useState(false)
     const { session } = useContext(AuthContext)
+    const lastMessageIdRef = useRef(null)
+    const isUserAtBottomRef = useRef(true)
     
     const messagesRequest = useRequest()
     const sendMessageRequest = useRequest()
@@ -19,6 +21,7 @@ const useChannel = (workspaceId, channelId) => {
         const fetchMessages = async () => {
             setMessages([])
             setHasFetchedOnce(false)
+            lastMessageIdRef.current = null
             try {
                 await messagesRequest.sendRequest(() => getChannelMessages(workspaceId, channelId))
             } catch (err) {
@@ -30,12 +33,11 @@ const useChannel = (workspaceId, channelId) => {
 
         fetchMessages()
         
-        // Set up polling - fetch messages every 2 seconds
+        // Set up polling - fetch messages every 5 seconds (increased from 2s for efficiency)
         const pollInterval = setInterval(() => {
-            console.log('🔄 Polling for new messages...')
             messagesRequest.sendRequest(() => getChannelMessages(workspaceId, channelId))
                 .catch(err => console.error('Error polling messages:', err))
-        }, 2000)
+        }, 5000)
 
         // Cleanup interval on unmount or when channel changes
         return () => {
@@ -43,10 +45,42 @@ const useChannel = (workspaceId, channelId) => {
         }
     }, [channelId, workspaceId])
 
+    // Detect if user is at bottom of chat
+    useEffect(() => {
+        const handleScroll = (e) => {
+            const element = e.target
+            const isAtBottom = element.scrollHeight - element.scrollTop - element.clientHeight < 50
+            isUserAtBottomRef.current = isAtBottom
+        }
+
+        const chatElement = document.querySelector('.ws-messages')
+        if (chatElement) {
+            chatElement.addEventListener('scroll', handleScroll)
+            return () => chatElement.removeEventListener('scroll', handleScroll)
+        }
+    }, [])
+
     useEffect(() => {
         if (messagesRequest.response?.ok) {
             const newMessages = messagesRequest.response.data?.messages || []
-            setMessages(newMessages)
+            
+            setMessages(prev => {
+                // Remove temporary messages and merge with server messages
+                const nonTempMessages = prev.filter(m => !m._id?.startsWith('temp_'))
+                const existingIds = new Set(nonTempMessages.map(m => m._id))
+                const messagesToAdd = newMessages.filter(m => !existingIds.has(m._id))
+                
+                if (messagesToAdd.length > 0) {
+                    return [...nonTempMessages, ...messagesToAdd]
+                }
+                
+                return nonTempMessages.length > 0 ? nonTempMessages : newMessages
+            })
+            
+            // Update last message ID
+            if (newMessages.length > 0) {
+                lastMessageIdRef.current = newMessages[newMessages.length - 1]._id
+            }
         }
     }, [messagesRequest.response])
 
@@ -103,7 +137,8 @@ const useChannel = (workspaceId, channelId) => {
         isSending: sendMessageRequest.loading,
         sendMessage,
         hasFetchedOnce,
-        pendingMessageIds
+        pendingMessageIds,
+        isUserAtBottom: isUserAtBottomRef
     }
 }
 

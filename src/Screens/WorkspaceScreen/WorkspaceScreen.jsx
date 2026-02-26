@@ -285,19 +285,22 @@ const WorkspaceScreen = () => {
 }
 
 const ChannelChat = ({ workspaceId, channelId, channels }) => {
-    const { messages, loading, sendMessage, hasFetchedOnce, pendingMessageIds } = useChannel(workspaceId, channelId)
+    const { messages, loading, sendMessage, hasFetchedOnce, pendingMessageIds, isUserAtBottom } = useChannel(workspaceId, channelId)
     const [newMessage, setNewMessage] = useState('')
+    const [previousMessagesCount, setPreviousMessagesCount] = useState(0)
     const messagesEndRef = useRef(null)
     const textareaRef = useRef(null)
-
-    console.log('🎨 ChannelChat render - workspaceId:', workspaceId, 'channelId:', channelId, 'messages:', messages.length, 'loading:', loading)
 
     const channel = channels.find(c => (c.id || c._id || c.channel_id) === channelId)
     const channelName = channel ? (channel.name || channel.title) : 'canal'
 
+    // Auto-scroll only when there are new messages AND user is at bottom
     useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-    }, [messages])
+        if (messages.length > previousMessagesCount && isUserAtBottom?.current) {
+            messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+        }
+        setPreviousMessagesCount(messages.length)
+    }, [messages, previousMessagesCount, isUserAtBottom])
 
     const handleSend = () => {
         if (newMessage.trim()) {
@@ -330,8 +333,6 @@ const ChannelChat = ({ workspaceId, channelId, channels }) => {
         groups[dateKey].push(msg)
         return groups
     }, {})
-
-    console.log('📊 Grouped messages:', groupedMessages)
 
     return (
         <div className="ws-channel-chat">
@@ -380,7 +381,7 @@ const ChannelChat = ({ workspaceId, channelId, channels }) => {
                                         <div className="ws-msg-body">
                                             <div className="ws-msg-header">
                                                 <span className="ws-msg-author">{authorName}
-                                                    {isPending && <span className="ws-msg-pending-indicator" title="Enviando...">⏱</span>}
+                                                    {isPending && <span className="ws-msg-pending-indicator" title="Enviando..."><i class="bi bi-clock-history"></i></span>}
                                                 </span>
                                                 <span className="ws-msg-time">{time}</span>
                                             </div>
