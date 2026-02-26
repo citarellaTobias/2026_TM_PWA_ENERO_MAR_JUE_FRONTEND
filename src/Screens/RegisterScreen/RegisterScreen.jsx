@@ -17,7 +17,7 @@ const RegisterScreen = () => {
         <div className="register-page">
             <header className="register-nav">
                 <div className="logo">
-                    <span className="slack-logo-text">slack</span>
+                    <img src="/slack_logo.svg" alt="Slack" className="slack-logo" />
                 </div>
                 <div className="nav-right">
                     ¿Ya usas Slack? <Link to="/login">Inicia sesión</Link>
