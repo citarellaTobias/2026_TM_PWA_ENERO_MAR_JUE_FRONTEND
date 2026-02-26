@@ -2,13 +2,14 @@ import React, { useState, useEffect, useContext, useRef } from 'react'
 import { Link, useNavigate } from 'react-router'
 import useWorkspaceDetail from '../../hooks/useWorkspaceDetail'
 import useChannel from '../../hooks/useChannel'
-import { inviteUser, getWorkspaceMembers, deleteWorkspace } from '../../services/workspaceService'
+import { inviteUser, getWorkspaceMembers, deleteWorkspace, updateMemberRole, deleteMember } from '../../services/workspaceService'
 import { WorkspaceContext } from '../../context/WorkspaceContext'
 import { AuthContext } from '../../context/AuthContext'
 import './WorkspaceScreen.css'
 
 const WorkspaceScreen = () => {
     const navigate = useNavigate()
+    const { session } = useContext(AuthContext)
     const { refreshWorkspaces } = useContext(WorkspaceContext)
     const {
         workspace,
@@ -32,6 +33,16 @@ const WorkspaceScreen = () => {
     const [showMembersModal, setShowMembersModal] = useState(false)
     const [members, setMembers] = useState([])
     const [membersLoading, setMembersLoading] = useState(false)
+
+    const [showMembersEditModal, setShowMembersEditModal] = useState(false)
+    const [membersEditData, setMembersEditData] = useState([])
+    const [membersEditLoading, setMembersEditLoading] = useState(false)
+    const [memberRoleChanges, setMemberRoleChanges] = useState({})
+    const [memberRoleStatus, setMemberRoleStatus] = useState(null)
+    
+    const [showDeleteMemberModal, setShowDeleteMemberModal] = useState(false)
+    const [memberToDeleteId, setMemberToDeleteId] = useState(null)
+    const [deleteMemberStatus, setDeleteMemberStatus] = useState(null)
 
     const [showCreateChannelModal, setShowCreateChannelModal] = useState(false)
     const [createChannelName, setCreateChannelName] = useState('')
@@ -69,6 +80,85 @@ const WorkspaceScreen = () => {
             console.error("Error al obtener miembros", err)
         } finally {
             setMembersLoading(false)
+        }
+    }
+
+    const handleShowMembersEdit = async () => {
+        setShowMembersEditModal(true)
+        setMembersEditLoading(true)
+        setMemberRoleChanges({})
+        setMemberRoleStatus(null)
+        try {
+            const response = await getWorkspaceMembers(workspaceId)
+            setMembersEditData(response.data?.members || response.data || [])
+        } catch (err) {
+            console.error("Error al obtener miembros", err)
+        } finally {
+            setMembersEditLoading(false)
+        }
+    }
+
+    const handleRoleChange = (memberId, newRole) => {
+        setMemberRoleChanges(prev => ({
+            ...prev,
+            [memberId]: newRole
+        }))
+    }
+
+    const handleApplyRoleChanges = async () => {
+        setMemberRoleStatus(null)
+        const changedMemberIds = Object.keys(memberRoleChanges)
+        
+        if (changedMemberIds.length === 0) {
+            setMemberRoleStatus({ type: 'info', message: 'No hay cambios para aplicar' })
+            return
+        }
+
+        try {
+            for (const memberId of changedMemberIds) {
+                const newRole = memberRoleChanges[memberId]
+                await updateMemberRole(workspaceId, memberId, newRole)
+            }
+            
+            setMemberRoleStatus({ type: 'success', message: 'Roles actualizados con éxito!' })
+            
+            const response = await getWorkspaceMembers(workspaceId)
+            setMembersEditData(response.data?.members || response.data || [])
+            setMemberRoleChanges({})
+            
+            setTimeout(() => {
+                setMemberRoleStatus(null)
+            }, 3000)
+        } catch (err) {
+            setMemberRoleStatus({ type: 'error', message: err.message || 'Error al actualizar roles' })
+        }
+    }
+
+    const handleDeleteMemberClick = (memberId) => {
+        setMemberToDeleteId(memberId)
+        setDeleteMemberStatus(null)
+        setShowDeleteMemberModal(true)
+    }
+
+    const handleConfirmDeleteMember = async () => {
+        if (!memberToDeleteId) return
+        
+        setDeleteMemberStatus(null)
+        try {
+            await deleteMember(workspaceId, memberToDeleteId)
+            
+            const response = await getWorkspaceMembers(workspaceId)
+            setMembersEditData(response.data?.members || response.data || [])
+            
+            setShowDeleteMemberModal(false)
+            setMemberToDeleteId(null)
+            setDeleteMemberStatus({ type: 'success', message: 'Miembro eliminado con éxito!' })
+            
+            setTimeout(() => {
+                setDeleteMemberStatus(null)
+            }, 2000)
+        } catch (err) {
+            setDeleteMemberStatus({ type: 'error', message: err.message || 'Error al eliminar miembro' })
         }
     }
 
@@ -190,9 +280,6 @@ const WorkspaceScreen = () => {
                         <button className="ws-btn-invite" onClick={() => setShowInviteModal(true)}>
                             <i className="bi bi-person-fill-add"> Invitar</i>
                         </button>
-                        <button className="ws-btn-members" onClick={handleShowMembers}>
-                            Miembros
-                        </button>
                     </div>
                 </div>
 
@@ -242,6 +329,7 @@ const WorkspaceScreen = () => {
                         channelId={selectedChannelId} 
                         channels={channels || []}
                         member={member}
+                        onShowMembersEdit={handleShowMembersEdit}
                     />
                 ) : (
                     <div className="ws-no-channel">Selecciona un canal para comenzar a chatear</div>
@@ -438,11 +526,135 @@ const WorkspaceScreen = () => {
                     </div>
                 </div>
             )}
+
+            {showMembersEditModal && (
+                <div className="ws-modal-overlay" onClick={(e) => e.target === e.currentTarget && setShowMembersEditModal(false)}>
+                    <div className="ws-modal wide">
+                        <div className="ws-modal-header">
+                            <h3>Gestionar miembros de {workspaceName}</h3>
+                            <button className="ws-modal-close" onClick={() => setShowMembersEditModal(false)}>x</button>
+                        </div>
+                        <div className="ws-modal-body">
+                            {memberRoleStatus && (
+                                <div className={`ws-alert ${memberRoleStatus.type === 'error' ? 'error' : memberRoleStatus.type === 'success' ? 'success' : 'info'}`}>
+                                    {memberRoleStatus.message}
+                                </div>
+                            )}
+                            {deleteMemberStatus && (
+                                <div className={`ws-alert ${deleteMemberStatus.type === 'error' ? 'error' : 'success'}`}>
+                                    {deleteMemberStatus.message}
+                                </div>
+                            )}
+                            {membersEditLoading ? (
+                                <div>Cargando miembros...</div>
+                            ) : (
+                                <div className="ws-members-edit-list">
+                                    {membersEditData.map(m => {
+                                        const username =
+                                            m.fk_id_user?.username ||
+                                            m.member_username_user ||
+                                            m.username ||
+                                            'Unknown User'
+                                        const email =
+                                            m.fk_id_user?.email ||
+                                            m.member_email_user ||
+                                            m.email ||
+                                            ''
+                                        const currentRole = m.role || m.member_role || 'Member'
+                                        const memberId = m._id || m.member_id || m.id
+                                        const memberUserId = m.fk_id_user?._id || m.user_id || m.fk_id_user_id
+                                        const newRole = memberRoleChanges[memberId]
+                                        const roleToDisplay = newRole || currentRole
+                                        const canManage = member && (member.role === 'Admin' || member.role === 'Owner')
+                                        const isOwner = roleToDisplay === 'Owner'
+                                        const currentUserId = session?.user_id || session?.id || session?._id
+                                        const isSelfUser = currentUserId && String(memberUserId) === String(currentUserId)
+                                        const canDelete = canManage && !isOwner && !isSelfUser
+
+                                        return (
+                                            <div key={memberId} className="ws-member-edit-row">
+                                                <div className="ws-msg-avatar" style={{ backgroundColor: stringToColor(username) }}>
+                                                    {username.charAt(0).toUpperCase()}
+                                                </div>
+                                                <div className="ws-member-edit-info">
+                                                    <div className="ws-member-name">{username}</div>
+                                                    <div className="ws-member-meta">{email}</div>
+                                                </div>
+                                                <div className="ws-member-edit-controls">
+                                                    {isOwner ? (
+                                                        <span className="ws-role-badge">{roleToDisplay}</span>
+                                                    ) : canManage ? (
+                                                        <select 
+                                                            className="ws-role-select"
+                                                            value={roleToDisplay}
+                                                            onChange={(e) => handleRoleChange(memberId, e.target.value)}
+                                                        >
+                                                            <option value="Admin">Admin</option>
+                                                            <option value="Member">Member</option>
+                                                        </select>
+                                                    ) : (
+                                                        <span className="ws-role-badge">{roleToDisplay}</span>
+                                                    )}
+                                                    {canDelete && (
+                                                        <button 
+                                                            className="ws-member-delete-btn"
+                                                            onClick={() => handleDeleteMemberClick(memberId)}
+                                                            title="Eliminar miembro"
+                                                        >
+                                                            <i class="bi bi-person-fill-dash"></i>
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )
+                                    })}
+                                </div>
+                            )}
+                        </div>
+                        <div className="ws-modal-buttons">
+                            <button className="ws-btn-secondary" onClick={() => setShowMembersEditModal(false)}>
+                                Cerrar
+                            </button>
+                            {Object.keys(memberRoleChanges).length > 0 && (
+                                <button 
+                                    className="ws-btn-primary" 
+                                    onClick={handleApplyRoleChanges}
+                                    disabled={membersEditLoading}
+                                >
+                                    Aplicar cambios
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {showDeleteMemberModal && (
+                <div className="ws-modal-overlay" onClick={(e) => e.target === e.currentTarget && setShowDeleteMemberModal(false)}>
+                    <div className="ws-modal">
+                        <div className="ws-modal-header">
+                            <h3>Eliminar miembro</h3>
+                            <button className="ws-modal-close" onClick={() => setShowDeleteMemberModal(false)}>×</button>
+                        </div>
+                        <div className="ws-modal-body">
+                            <p>¿Estás seguro de que quieres eliminar este miembro del workspace?</p>
+                        </div>
+                        <div className="ws-modal-buttons">
+                            <button className="ws-btn-secondary" onClick={() => setShowDeleteMemberModal(false)}>
+                                Cancelar
+                            </button>
+                            <button className="ws-btn-danger" onClick={handleConfirmDeleteMember}>
+                                Eliminar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }
 
-const ChannelChat = ({ workspaceId, channelId, channels, member }) => {
+const ChannelChat = ({ workspaceId, channelId, channels, member, onShowMembersEdit }) => {
     const { messages, loading, sendMessage, deleteMessage, hasFetchedOnce, pendingMessageIds, isUserAtBottom } = useChannel(workspaceId, channelId)
     const { session } = useContext(AuthContext)
     const [newMessage, setNewMessage] = useState('')
@@ -522,7 +734,7 @@ const ChannelChat = ({ workspaceId, channelId, channels, member }) => {
                 </div>
                 <div className="ws-topbar-right">
                     <button className="ws-topbar-icon-btn" title="Buscar"><i className="bi bi-search"></i></button>
-                    <button className="ws-topbar-icon-btn" title="Miembros"><i className="bi bi-people"></i></button>
+                    <button className="ws-topbar-icon-btn" title="Miembros" onClick={onShowMembersEdit}><i className="bi bi-people"></i></button>
                 </div>
             </div>
 

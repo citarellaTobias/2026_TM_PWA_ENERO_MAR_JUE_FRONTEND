@@ -153,8 +153,7 @@
   gap: 8px;
 }
 
-.ws-btn-invite,
-.ws-btn-members {
+.ws-btn-invite {
   flex: 1;
   padding: 6px 10px;
   border-radius: 4px;
@@ -163,25 +162,14 @@
   font-weight: 700;
   transition: all 100ms;
   font-family: inherit;
-}
-
-.ws-btn-invite {
   background: transparent;
   border: 1px solid rgba(255,255,255,0.3);
   color: rgba(255,255,255,0.8);
 }
 .ws-btn-invite:hover {
-  background: rgba(255,255,255,0.05);
-  border-color: rgba(255,255,255,0.5);
-}
-
-.ws-btn-members {
-  background: rgba(255,255,255,0.1);
-  border: none;
+  background: rgba(26, 120, 76, 0.4);
+  border-color: rgba(56, 170, 114, 0.6);
   color: #fff;
-}
-.ws-btn-members:hover {
-  background: rgba(255,255,255,0.16);
 }
 
 .ws-sidebar-body {
@@ -888,6 +876,118 @@
   color: rgba(255,255,255,0.4);
   text-align: center;
   margin-top: 8px;
+}
+
+/* Estilos para modal de edición de miembros */
+.ws-members-edit-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.ws-member-edit-row {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  gap: 12px;
+}
+
+.ws-member-edit-row:last-child {
+  border-bottom: none;
+}
+
+.ws-member-edit-row:hover {
+  background: rgba(255,255,255,0.02);
+}
+
+.ws-member-edit-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.ws-member-edit-info .ws-member-name {
+  font-weight: 700;
+  color: #fff;
+  font-size: 14px;
+}
+
+.ws-member-edit-info .ws-member-meta {
+  font-size: 12px;
+  color: rgba(255,255,255,0.4);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ws-member-edit-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.ws-role-select {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.2);
+  color: #fff;
+  padding: 6px 8px;
+  border-radius: 4px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 200ms ease;
+  font-family: 'Lato', system-ui, sans-serif;
+  min-width: 100px;
+}
+
+.ws-role-select:hover {
+  border-color: rgba(255,255,255,0.4);
+}
+
+.ws-role-select:focus {
+  outline: none;
+  border-color: #007a5e;
+  box-shadow: 0 0 0 2px rgba(0,122,94,0.2);
+}
+
+/* Opciones del select */
+.ws-role-select option {
+  background: #2a2d31;
+  color: #fff;
+}
+
+.ws-role-badge {
+  display: inline-block;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: rgba(255,255,255,0.8);
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.ws-member-delete-btn {
+  background: transparent;
+  border: none;
+  color: #e01e5a;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 2px 6px;
+  transition: all 200ms ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.ws-member-delete-btn:hover {
+  background: rgba(224, 30, 90, 0.1);
+  border-radius: 4px;
 }
 
 @media (max-width: 768px) {
