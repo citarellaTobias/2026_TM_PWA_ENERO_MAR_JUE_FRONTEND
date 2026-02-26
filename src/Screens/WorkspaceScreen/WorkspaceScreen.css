@@ -108,7 +108,7 @@
   display: flex;
   align-items: center;
   transition: color 100ms, background 100ms;
-  font-size: 16px;
+  font-size: 12px;
   line-height: 1;
 }
 .ws-sidebar-icon-btn:hover {

@@ -7,18 +7,21 @@ export const WorkspaceContext = createContext(
     {
         workspace_list_loading: false,
         workspace_list: null,
-        workspace_list_error: null
+        workspace_list_error: null,
+        refreshWorkspaces: () => {}
     }
 )
 
 const WorkspaceContextProvider = ({children}) => {
     const {loading, response, error, sendRequest} = useRequest()
 
+    const refreshWorkspaces = () => {
+        sendRequest(getWorkspaceList)
+    }
+
     useEffect(
         () => {
-            sendRequest(
-                getWorkspaceList
-            )
+            refreshWorkspaces()
         },
         []
     )
@@ -26,7 +29,8 @@ const WorkspaceContextProvider = ({children}) => {
     const provider_values = {
         workspace_list_loading: loading,
         workspace_list: response,
-        workspace_list_error: error
+        workspace_list_error: error,
+        refreshWorkspaces
     }
     return(
         <WorkspaceContext.Provider 

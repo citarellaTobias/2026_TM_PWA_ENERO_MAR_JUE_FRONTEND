@@ -150,3 +150,23 @@ export async function deleteMember(workspace_id, member_id) {
     }
     return response
 }
+
+export async function updateWorkspace(workspace_id, workspace_data) {
+    const response_http = await fetch(
+        URL_API + `/api/workspace/${workspace_id}`,
+        {
+            method: 'PUT',
+            headers: {
+                'x-api-key': import.meta.env.VITE_API_KEY,
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + localStorage.getItem('auth_token'),
+            },
+            body: JSON.stringify(workspace_data)
+        }
+    )
+    const response = await response_http.json()
+    if (!response.ok) {
+        throw new ServerError(response.message, response.status)
+    }
+    return response
+}

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext, useRef } from 'react'
 import { Link, useNavigate } from 'react-router'
 import useWorkspaceDetail from '../../hooks/useWorkspaceDetail'
 import useChannel from '../../hooks/useChannel'
-import { inviteUser, getWorkspaceMembers, deleteWorkspace, updateMemberRole, deleteMember } from '../../services/workspaceService'
+import { inviteUser, getWorkspaceMembers, deleteWorkspace, updateMemberRole, deleteMember, updateWorkspace } from '../../services/workspaceService'
 import { WorkspaceContext } from '../../context/WorkspaceContext'
 import { AuthContext } from '../../context/AuthContext'
 import './WorkspaceScreen.css'
@@ -53,6 +53,14 @@ const WorkspaceScreen = () => {
     const [editChannelStatus, setEditChannelStatus] = useState(null)
 
     const [showMobileMenu, setShowMobileMenu] = useState(false)
+
+    const [showEditWorkspaceModal, setShowEditWorkspaceModal] = useState(false)
+    const [editWorkspaceName, setEditWorkspaceName] = useState('')
+    const [editWorkspaceStatus, setEditWorkspaceStatus] = useState(null)
+
+    const [showDeleteWorkspaceModal, setShowDeleteWorkspaceModal] = useState(false)
+    const [deleteWorkspaceConfirm, setDeleteWorkspaceConfirm] = useState('')
+    const [deleteWorkspaceStatus, setDeleteWorkspaceStatus] = useState(null)
 
     const handleInvite = async (e) => {
         e.preventDefault()
@@ -174,6 +182,51 @@ const WorkspaceScreen = () => {
         }
     }
 
+    const handleEditWorkspaceOpen = () => {
+        setEditWorkspaceName(workspaceName)
+        setEditWorkspaceStatus(null)
+        setShowEditWorkspaceModal(true)
+    }
+
+    const handleUpdateWorkspace = async () => {
+        if (!editWorkspaceName.trim()) {
+            setEditWorkspaceStatus({ type: 'error', message: 'El nombre del workspace no puede estar vacío' })
+            return
+        }
+
+        try {
+            await updateWorkspace(workspaceId, { title: editWorkspaceName.trim() })
+            setEditWorkspaceStatus({ type: 'success', message: 'Workspace actualizado!' })
+            setTimeout(() => {
+                setShowEditWorkspaceModal(false)
+                window.location.reload()
+            }, 1500)
+        } catch (err) {
+            setEditWorkspaceStatus({ type: 'error', message: err.message || 'Error al actualizar el workspace' })
+        }
+    }
+
+    const handleDeleteWorkspaceClick = () => {
+        setShowDeleteWorkspaceModal(true)
+        setDeleteWorkspaceConfirm('')
+        setDeleteWorkspaceStatus(null)
+    }
+
+    const handleConfirmDeleteWorkspace = async () => {
+        if (deleteWorkspaceConfirm !== 'eliminar') {
+            setDeleteWorkspaceStatus({ type: 'error', message: 'Debes escribir "eliminar" para confirmar' })
+            return
+        }
+
+        try {
+            await deleteWorkspace(workspaceId)
+            refreshWorkspaces()
+            navigate('/home')
+        } catch (err) {
+            setDeleteWorkspaceStatus({ type: 'error', message: err.message || 'Error al eliminar el workspace' })
+        }
+    }
+
     const handleEditChannelOpen = (channelId, channelName) => {
         setEditingChannelId(channelId)
         setEditChannelName(channelName)
@@ -261,17 +314,21 @@ const WorkspaceScreen = () => {
                             <h2>{workspaceName}</h2>
                         </div>
                         <div className="ws-sidebar-actions">
+                            {member && (member.role === 'Admin' || member.role === 'Owner') && (
+                                <button
+                                    className="ws-sidebar-icon-btn"
+                                    onClick={handleEditWorkspaceOpen}
+                                    title="Editar workspace"
+                                >
+                                    <i className="bi bi-pencil"></i>
+                                </button>
+                            )}
                             <button
                                 className="ws-mobile-toggle ws-sidebar-icon-btn"
                                 onClick={() => setShowMobileMenu(false)}
                                 style={{ display: showMobileMenu ? 'flex' : 'none' }}
                             >×</button>
                         </div>
-                    </div>
-
-                    <div className="ws-status-row">
-                        <div className="ws-status-dot"></div>
-                        <span className="ws-status-label">Activo</span>
                     </div>
 
                     <Link to="/home" className="ws-back-link">← Volver al Home</Link>
@@ -650,6 +707,108 @@ const WorkspaceScreen = () => {
                     </div>
                 </div>
             )}
+
+            {showEditWorkspaceModal && (
+                <div className="ws-modal-overlay" onClick={(e) => e.target === e.currentTarget && setShowEditWorkspaceModal(false)}>
+                    <div className="ws-modal">
+                        <div className="ws-modal-header">
+                            <h3>Editar workspace</h3>
+                            <button className="ws-modal-close" onClick={() => setShowEditWorkspaceModal(false)}>×</button>
+                        </div>
+                        <div className="ws-modal-body">
+                            {editWorkspaceStatus && (
+                                <div className={`ws-alert ${editWorkspaceStatus.type === 'error' ? 'error' : 'success'}`}>
+                                    {editWorkspaceStatus.message}
+                                </div>
+                            )}
+                            <div className="ws-form-group">
+                                <label className="ws-form-label">Nombre del workspace</label>
+                                <input
+                                    type="text"
+                                    value={editWorkspaceName}
+                                    onChange={(e) => setEditWorkspaceName(e.target.value)}
+                                    placeholder="Nombre del workspace"
+                                    className="ws-form-input"
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' && editWorkspaceName.trim()) {
+                                            handleUpdateWorkspace()
+                                        }
+                                    }}
+                                    autoFocus
+                                />
+                            </div>
+                        </div>
+                        <div className="ws-modal-buttons">
+                            {member && member.role === 'Owner' && (
+                                <button 
+                                    className="ws-btn-danger" 
+                                    onClick={handleDeleteWorkspaceClick}
+                                >
+                                    Eliminar workspace
+                                </button>
+                            )}
+                            <div className="ws-modal-buttons-right">
+                                <button className="ws-btn-secondary" onClick={() => setShowEditWorkspaceModal(false)}>
+                                    Cancelar
+                                </button>
+                                <button 
+                                    className="ws-btn-primary" 
+                                    onClick={handleUpdateWorkspace}
+                                    disabled={!editWorkspaceName.trim()}
+                                >
+                                    Guardar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {showDeleteWorkspaceModal && (
+                <div className="ws-modal-overlay" onClick={(e) => e.target === e.currentTarget && setShowDeleteWorkspaceModal(false)}>
+                    <div className="ws-modal">
+                        <div className="ws-modal-header">
+                            <h3>Eliminar workspace</h3>
+                            <button className="ws-modal-close" onClick={() => setShowDeleteWorkspaceModal(false)}>×</button>
+                        </div>
+                        <div className="ws-modal-body">
+                            {deleteWorkspaceStatus && (
+                                <div className={`ws-alert ${deleteWorkspaceStatus.type === 'error' ? 'error' : 'success'}`}>
+                                    {deleteWorkspaceStatus.message}
+                                </div>
+                            )}
+                            <p>Esta acción no se puede deshacer. Para confirmar, escribe <strong>"eliminar"</strong>:</p>
+                            <div className="ws-form-group">
+                                <input
+                                    type="text"
+                                    value={deleteWorkspaceConfirm}
+                                    onChange={(e) => setDeleteWorkspaceConfirm(e.target.value)}
+                                    placeholder="Escribe 'eliminar'"
+                                    className="ws-form-input"
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' && deleteWorkspaceConfirm === 'eliminar') {
+                                            handleConfirmDeleteWorkspace()
+                                        }
+                                    }}
+                                    autoFocus
+                                />
+                            </div>
+                        </div>
+                        <div className="ws-modal-buttons">
+                            <button className="ws-btn-secondary" onClick={() => setShowDeleteWorkspaceModal(false)}>
+                                Cancelar
+                            </button>
+                            <button 
+                                className="ws-btn-danger" 
+                                onClick={handleConfirmDeleteWorkspace}
+                                disabled={deleteWorkspaceConfirm !== 'eliminar'}
+                            >
+                                Eliminar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }
@@ -733,7 +892,7 @@ const ChannelChat = ({ workspaceId, channelId, channels, member, onShowMembersEd
                     </div>
                 </div>
                 <div className="ws-topbar-right">
-                    <button className="ws-topbar-icon-btn" title="Buscar"><i className="bi bi-search"></i></button>
+                  
                     <button className="ws-topbar-icon-btn" title="Miembros" onClick={onShowMembersEdit}><i className="bi bi-people"></i></button>
                 </div>
             </div>
@@ -830,11 +989,6 @@ const ChannelChat = ({ workspaceId, channelId, channels, member, onShowMembersEd
                                     <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
                                 </svg>
                             </button>
-                        </div>
-                        <div className="ws-composer-bottom-row">
-                            <button className="ws-composer-icon-btn" title="Adjuntar">📎</button>
-                            <button className="ws-composer-icon-btn" title="Emoji">😊</button>
-                            <button className="ws-composer-icon-btn" title="Mencionar">@</button>
                         </div>
                     </div>
                 </div>

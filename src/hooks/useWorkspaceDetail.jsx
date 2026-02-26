@@ -16,8 +16,13 @@ const useWorkspaceDetail = () => {
         await sendRequest(async () => {
             const workspaceResponse = await getWorkspaceDetail(workspace_id)
             console.log('Workspace response:', workspaceResponse)
-            setWorkspace(workspaceResponse.data)
+            
+            // Ajustar la ruta de datos según la estructura de la API
+            const workspaceData = workspaceResponse.data?.workspace || workspaceResponse.data
+            
+            setWorkspace(workspaceData)
             setMember(workspaceResponse.data.member)
+            
             const channelsResponse = await getWorkspaceChannels(workspace_id)
             console.log('Channels response:', channelsResponse)
             
